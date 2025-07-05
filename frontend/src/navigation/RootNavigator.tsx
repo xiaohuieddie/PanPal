@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../utils/theme';
 import { useOnboarding } from '../utils/OnboardingContext';
+import { useAuth } from '../contexts/AuthContext';
 
 import WelcomeScreen from '../screens/onboarding/WelcomeScreen';
 import HealthSetupScreen from '../screens/onboarding/HealthSetupScreen';
@@ -96,11 +97,17 @@ function MainNavigator() {
 
 export default function RootNavigator() {
   const { isOnboarded } = useOnboarding();
+  const { user, loading, isSigningUp } = useAuth();
+
+  if (loading) {
+    // You can add a loading screen here
+    return null;
+  }
 
   return (
     <NavigationContainer>
       <RootStack.Navigator screenOptions={{ headerShown: false }}>
-        {!isOnboarded ? (
+        {!user || isSigningUp || !isOnboarded ? (
           <RootStack.Screen name="Onboarding" component={OnboardingNavigator} />
         ) : (
           <RootStack.Screen name="Main" component={MainNavigator} />

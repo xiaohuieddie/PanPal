@@ -13,7 +13,7 @@ import { theme } from '../../utils/theme';
 export default function HomeScreen() {
   const weeklyProgress = 3; // out of 7 days
   const streakDays = 5;
-  const currentDate = new Date().toLocaleDateString('zh-CN', { 
+  const currentDate = new Date().toLocaleDateString('en-US', { 
     month: 'short', 
     day: 'numeric' 
   });
@@ -26,28 +26,28 @@ export default function HomeScreen() {
           <View style={styles.headerTop}>
             <View>
               <Text style={styles.dateText}>{currentDate}</Text>
-              <Text style={styles.greeting}>Hi, 用户</Text>
+              <Text style={styles.greeting}>Hi, User</Text>
             </View>
             <View style={styles.avatarContainer}>
               <Text style={styles.avatarText}>🍳</Text>
             </View>
           </View>
-          <Text style={styles.subtitle}>今天想吃什么？</Text>
+          <Text style={styles.subtitle}>What would you like to cook today?</Text>
         </View>
 
         {/* Featured Recipe Card */}
         <View style={styles.featuredSection}>
           <LinearGradient
-            colors={theme.gradients.primary}
+            colors={theme.gradients.primary as [string, string]}
             style={styles.featuredCard}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
             <View style={styles.featuredContent}>
-              <Text style={styles.featuredTitle}>蒜蓉西兰花鸡胸肉</Text>
-              <Text style={styles.featuredSubtitle}>营养均衡 • 25分钟</Text>
+              <Text style={styles.featuredTitle}>Garlic Broccoli Chicken Breast</Text>
+              <Text style={styles.featuredSubtitle}>Balanced Nutrition • 25 min</Text>
               <TouchableOpacity style={styles.continueButton}>
-                <Text style={styles.continueButtonText}>▶ 继续制作</Text>
+                <Text style={styles.continueButtonText}>▶ Continue Cooking</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.featuredImageContainer}>
@@ -59,9 +59,9 @@ export default function HomeScreen() {
         {/* Best Chef Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>精选厨师</Text>
+            <Text style={styles.sectionTitle}>Featured Chefs</Text>
             <TouchableOpacity>
-              <Text style={styles.seeAllText}>查看全部</Text>
+              <Text style={styles.seeAllText}>View All</Text>
             </TouchableOpacity>
           </View>
           <ScrollView 
@@ -70,10 +70,10 @@ export default function HomeScreen() {
             contentContainerStyle={styles.chefScrollContent}
           >
             {[
-              { name: '林师傅', image: '👨‍🍳', specialty: '川菜' },
-              { name: '小美', image: '👩‍🍳', specialty: '轻食' },
-              { name: '阿华', image: '👨‍🍳', specialty: '粤菜' },
-              { name: '小雅', image: '👩‍🍳', specialty: '素食' },
+              { name: 'Chef Lin', image: '👨‍🍳', specialty: 'Sichuan Cuisine' },
+              { name: 'Chef Mei', image: '👩‍🍳', specialty: 'Light Meals' },
+              { name: 'Chef Hua', image: '👨‍🍳', specialty: 'Cantonese' },
+              { name: 'Chef Ya', image: '👩‍🍳', specialty: 'Vegetarian' },
             ].map((chef, index) => (
               <TouchableOpacity key={index} style={styles.chefCard}>
                 <View style={styles.chefImageContainer}>
@@ -89,9 +89,9 @@ export default function HomeScreen() {
         {/* Just for You Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>为您推荐</Text>
+            <Text style={styles.sectionTitle}>Recommended for You</Text>
             <TouchableOpacity>
-              <Text style={styles.seeAllText}>查看全部</Text>
+              <Text style={styles.seeAllText}>View All</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.recommendationGrid}>
@@ -103,8 +103,8 @@ export default function HomeScreen() {
                 end={{ x: 1, y: 1 }}
               >
                 <View style={styles.recipeContent}>
-                  <Text style={styles.recipeTitle}>蒜蓉西兰花</Text>
-                  <Text style={styles.recipeSubtitle}>营养均衡</Text>
+                  <Text style={styles.recipeTitle}>Garlic Broccoli</Text>
+                  <Text style={styles.recipeSubtitle}>Balanced Nutrition</Text>
                   <View style={styles.recipeImageContainer}>
                     <Text style={styles.recipeImagePlaceholder}>🥦</Text>
                   </View>
@@ -123,8 +123,8 @@ export default function HomeScreen() {
                 end={{ x: 1, y: 1 }}
               >
                 <View style={styles.recipeContent}>
-                  <Text style={styles.recipeTitle}>番茄鸡蛋面</Text>
-                  <Text style={styles.recipeSubtitle}>简单美味</Text>
+                  <Text style={styles.recipeTitle}>Tomato Egg Noodles</Text>
+                  <Text style={styles.recipeSubtitle}>Simple & Delicious</Text>
                   <View style={styles.recipeImageContainer}>
                     <Text style={styles.recipeImagePlaceholder}>🍜</Text>
                   </View>

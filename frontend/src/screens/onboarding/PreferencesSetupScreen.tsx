@@ -6,68 +6,108 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OnboardingStackParamList } from '../../navigation/RootNavigator';
 import { useOnboarding } from '../../utils/OnboardingContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useSignUp } from '../../contexts/SignUpContext';
+import { useHealthData } from '../../contexts/HealthDataContext';
 
 type PreferencesSetupScreenNavigationProp = NativeStackNavigationProp<OnboardingStackParamList, 'PreferencesSetup'>;
 
+const cuisineOptions = [
+  'Chinese', 'Italian', 'Mexican', 'Japanese', 'Indian', 'Thai', 'Mediterranean', 'American'
+];
+
+const cookingTimeOptions = [
+  { label: '15 minutes or less', value: '15' },
+  { label: '15-30 minutes', value: '30' },
+  { label: '30-45 minutes', value: '45' },
+  { label: '45+ minutes', value: '60' }
+];
+
+const budgetOptions = [
+  { label: 'Budget-friendly ($)', value: 'low' },
+  { label: 'Moderate ($$)', value: 'medium' },
+  { label: 'Premium ($$$)', value: 'high' }
+];
+
 export default function PreferencesSetupScreen() {
   const navigation = useNavigation<PreferencesSetupScreenNavigationProp>();
+  const { healthData } = useHealthData();
+  const { credentials } = useSignUp();
+  const { signUp } = useAuth();
   const { completeOnboarding } = useOnboarding();
-  const [cuisinePreferences, setCuisinePreferences] = useState<string[]>([]);
-  const [cookingTime, setCookingTime] = useState<string | null>(null);
-  const [budget, setBudget] = useState<string | null>(null);
+  
+  const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
+  const [cookingTime, setCookingTime] = useState<string>('');
+  const [budget, setBudget] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
-  const cuisines = [
-    { id: 'chinese', label: 'Chinese', icon: '🥢' },
-    { id: 'healthy', label: 'Healthy', icon: '🥗' },
-    { id: 'fitness', label: 'Fitness', icon: '💪' },
-    { id: 'vegetarian', label: 'Vegetarian', icon: '🥕' },
-    { id: 'quick', label: 'Quick Meals', icon: '⚡' },
-    { id: 'soup', label: 'Soups', icon: '🍲' },
-  ];
-
-  const timeOptions = [
-    { id: '<15', label: 'Under 15 minutes', icon: '⚡' },
-    { id: '15-30', label: '15-30 minutes', icon: '⏰' },
-    { id: '>30', label: 'Over 30 minutes', icon: '🕐' },
-  ];
-
-  const budgetOptions = [
-    { id: 'economic', label: 'Budget-Friendly', description: '$5-10 per meal', icon: '💰' },
-    { id: 'standard', label: 'Standard', description: '$10-15 per meal', icon: '💳' },
-    { id: 'premium', label: 'Premium', description: '$15+ per meal', icon: '💎' },
-  ];
-
-  const toggleCuisine = (cuisineId: string) => {
-    setCuisinePreferences(prev =>
-      prev.includes(cuisineId)
-        ? prev.filter(id => id !== cuisineId)
-        : [...prev, cuisineId]
+  const toggleCuisine = (cuisine: string) => {
+    setSelectedCuisines(prev => 
+      prev.includes(cuisine) 
+        ? prev.filter(c => c !== cuisine)
+        : [...prev, cuisine]
     );
   };
 
-  const handleComplete = () => {
-    // In a real app, save user preferences to AsyncStorage or API
-    console.log('Preferences setup completed');
-    completeOnboarding();
-  };
+  const handleComplete = async () => {
+    if (!credentials) {
+      Alert.alert('Error', 'Sign-up credentials not found. Please start over.');
+      return;
+    }
 
-  const handleBack = () => {
-    navigation.goBack();
-  };
+    if (!healthData) {
+      Alert.alert('Error', 'Health data not found. Please go back and complete health setup.');
+      return;
+    }
 
-  const isFormValid = cuisinePreferences.length > 0 && cookingTime && budget;
+    if (selectedCuisines.length === 0 || !cookingTime || !budget) {
+      Alert.alert('Error', 'Please select all preferences');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Create user profile with all collected data
+      const userData = {
+        name: credentials.name,
+        gender: healthData.gender,
+        age: healthData.age,
+        height: healthData.height,
+        weight: healthData.weight,
+        goal: healthData.goal,
+        cuisinePreferences: selectedCuisines,
+        allergies: [], // Default empty array
+        dislikes: [], // Default empty array
+        cookingTime: cookingTime === '15' ? '<15' : cookingTime === '30' ? '15-30' : '>30' as '<15' | '15-30' | '>30',
+        budget: budget === 'low' ? 'economic' : budget === 'medium' ? 'standard' : 'premium' as 'economic' | 'standard' | 'premium',
+      };
+
+      // Complete sign-up process
+      await signUp(credentials.email, credentials.password, userData);
+      
+      // Mark onboarding as complete
+      await completeOnboarding();
+      
+      // Navigation will be handled automatically by AuthContext
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       {/* Back Button */}
       <View style={styles.backButtonContainer}>
-        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={24} color="#333" />
         </TouchableOpacity>
       </View>
@@ -75,30 +115,29 @@ export default function PreferencesSetupScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.title}>Set Your Preferences</Text>
-          <Text style={styles.subtitle}>Let us recommend the perfect recipes for you</Text>
+          <Text style={styles.subtitle}>
+            Help us create personalized meal plans just for you
+          </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferred Cuisine Types</Text>
-          <Text style={styles.sectionSubtitle}>You can select multiple</Text>
-          <View style={styles.cuisineGrid}>
-            {cuisines.map((cuisine) => (
+          <Text style={styles.sectionTitle}>Favorite Cuisines</Text>
+          <Text style={styles.sectionSubtitle}>Select all that apply</Text>
+          <View style={styles.optionsGrid}>
+            {cuisineOptions.map((cuisine) => (
               <TouchableOpacity
-                key={cuisine.id}
+                key={cuisine}
                 style={[
-                  styles.cuisineButton,
-                  cuisinePreferences.includes(cuisine.id) && styles.selectedCuisine,
+                  styles.optionChip,
+                  selectedCuisines.includes(cuisine) && styles.optionChipSelected
                 ]}
-                onPress={() => toggleCuisine(cuisine.id)}
+                onPress={() => toggleCuisine(cuisine)}
               >
-                <Text style={styles.cuisineIcon}>{cuisine.icon}</Text>
-                <Text
-                  style={[
-                    styles.cuisineText,
-                    cuisinePreferences.includes(cuisine.id) && styles.selectedCuisineText,
-                  ]}
-                >
-                  {cuisine.label}
+                <Text style={[
+                  styles.optionChipText,
+                  selectedCuisines.includes(cuisine) && styles.optionChipTextSelected
+                ]}>
+                  {cuisine}
                 </Text>
               </TouchableOpacity>
             ))}
@@ -106,73 +145,58 @@ export default function PreferencesSetupScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Cooking Time per Meal</Text>
-          <View style={styles.timeContainer}>
-            {timeOptions.map((timeOption) => (
-              <TouchableOpacity
-                key={timeOption.id}
-                style={[
-                  styles.timeButton,
-                  cookingTime === timeOption.id && styles.selectedTime,
-                ]}
-                onPress={() => setCookingTime(timeOption.id)}
-              >
-                <Text style={styles.timeIcon}>{timeOption.icon}</Text>
-                <Text
-                  style={[
-                    styles.timeText,
-                    cookingTime === timeOption.id && styles.selectedTimeText,
-                  ]}
-                >
-                  {timeOption.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <Text style={styles.sectionTitle}>Maximum Cooking Time</Text>
+          <Text style={styles.sectionSubtitle}>How much time can you spend cooking?</Text>
+          {cookingTimeOptions.map((option) => (
+            <TouchableOpacity
+              key={option.value}
+              style={[
+                styles.optionButton,
+                cookingTime === option.value && styles.optionButtonSelected
+              ]}
+              onPress={() => setCookingTime(option.value)}
+            >
+              <Text style={[
+                styles.optionButtonText,
+                cookingTime === option.value && styles.optionButtonTextSelected
+              ]}>
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Budget Preference</Text>
-          <View style={styles.budgetContainer}>
-            {budgetOptions.map((budgetOption) => (
-              <TouchableOpacity
-                key={budgetOption.id}
-                style={[
-                  styles.budgetButton,
-                  budget === budgetOption.id && styles.selectedBudget,
-                ]}
-                onPress={() => setBudget(budgetOption.id)}
-              >
-                <View style={styles.budgetContent}>
-                  <Text style={styles.budgetIcon}>{budgetOption.icon}</Text>
-                  <View style={styles.budgetTextContainer}>
-                    <Text
-                      style={[
-                        styles.budgetText,
-                        budget === budgetOption.id && styles.selectedBudgetText,
-                      ]}
-                    >
-                      {budgetOption.label}
-                    </Text>
-                    <Text style={styles.budgetDescription}>
-                      {budgetOption.description}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
+          <Text style={styles.sectionSubtitle}>What's your typical meal budget?</Text>
+          {budgetOptions.map((option) => (
+            <TouchableOpacity
+              key={option.value}
+              style={[
+                styles.optionButton,
+                budget === option.value && styles.optionButtonSelected
+              ]}
+              onPress={() => setBudget(option.value)}
+            >
+              <Text style={[
+                styles.optionButtonText,
+                budget === option.value && styles.optionButtonTextSelected
+              ]}>
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.completeButton, !isFormValid && styles.disabledButton]}
+          style={[styles.completeButton, loading && styles.completeButtonDisabled]}
           onPress={handleComplete}
-          disabled={!isFormValid}
+          disabled={loading}
         >
-          <Text style={[styles.completeButtonText, !isFormValid && styles.disabledText]}>
-            Complete Setup
+          <Text style={styles.completeButtonText}>
+            {loading ? 'Creating Account...' : 'Complete Setup'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -232,104 +256,49 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 16,
   },
-  cuisineGrid: {
+  optionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
   },
-  cuisineButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
+  optionChip: {
     paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#F5F5F5',
-    marginBottom: 8,
+    borderColor: '#ddd',
+    backgroundColor: '#f9f9f9',
   },
-  selectedCuisine: {
-    borderColor: '#4CAF50',
-    backgroundColor: '#E8F5E8',
+  optionChipSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
   },
-  cuisineIcon: {
-    fontSize: 16,
-    marginRight: 8,
-  },
-  cuisineText: {
+  optionChipText: {
     fontSize: 14,
-    color: '#666',
+    color: '#333',
   },
-  selectedCuisineText: {
-    color: '#4CAF50',
-    fontWeight: '600',
+  optionChipTextSelected: {
+    color: '#fff',
   },
-  timeContainer: {
-    gap: 12,
+  optionButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    backgroundColor: '#f9f9f9',
+    marginBottom: 12,
   },
-  timeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#F5F5F5',
+  optionButtonSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
   },
-  selectedTime: {
-    borderColor: '#4CAF50',
-    backgroundColor: '#E8F5E8',
-  },
-  timeIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  timeText: {
+  optionButtonText: {
     fontSize: 16,
-    color: '#666',
+    color: '#333',
   },
-  selectedTimeText: {
-    color: '#4CAF50',
-    fontWeight: '600',
-  },
-  budgetContainer: {
-    gap: 12,
-  },
-  budgetButton: {
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#F5F5F5',
-  },
-  selectedBudget: {
-    borderColor: '#4CAF50',
-    backgroundColor: '#E8F5E8',
-  },
-  budgetContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  budgetIcon: {
-    fontSize: 20,
-    marginRight: 12,
-  },
-  budgetTextContainer: {
-    flex: 1,
-  },
-  budgetText: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
-  },
-  selectedBudgetText: {
-    color: '#4CAF50',
-    fontWeight: '600',
-  },
-  budgetDescription: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 2,
+  optionButtonTextSelected: {
+    color: '#fff',
   },
   footer: {
     padding: 24,
@@ -341,15 +310,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  disabledButton: {
+  completeButtonDisabled: {
     backgroundColor: '#E0E0E0',
   },
   completeButtonText: {
     fontSize: 18,
     fontWeight: '600',
     color: 'white',
-  },
-  disabledText: {
-    color: '#999',
   },
 });

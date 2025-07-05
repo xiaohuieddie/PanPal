@@ -6,58 +6,86 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../contexts/AuthContext';
 
 const menuItems = [
   {
     icon: 'person-outline',
-    title: '个人信息',
-    subtitle: '编辑个人资料和健康目标',
+    title: 'Personal Information',
+    subtitle: 'Edit profile and health goals',
   },
   {
     icon: 'restaurant-outline',
-    title: '饮食偏好',
-    subtitle: '管理菜系偏好和忌口食物',
+    title: 'Dietary Preferences',
+    subtitle: 'Manage cuisine preferences and allergies',
   },
   {
     icon: 'notifications-outline',
-    title: '提醒设置',
-    subtitle: '设置用餐和打卡提醒',
+    title: 'Notification Settings',
+    subtitle: 'Set meal and check-in reminders',
   },
   {
     icon: 'analytics-outline',
-    title: '健康报告',
-    subtitle: '查看详细的营养分析报告',
+    title: 'Health Reports',
+    subtitle: 'View detailed nutrition analysis',
   },
   {
     icon: 'gift-outline',
-    title: '我的奖励',
-    subtitle: '查看已获得的优惠券和徽章',
+    title: 'My Rewards',
+    subtitle: 'View earned coupons and badges',
   },
   {
     icon: 'share-outline',
-    title: '邀请好友',
-    subtitle: '邀请好友一起健康饮食',
+    title: 'Invite Friends',
+    subtitle: 'Invite friends to healthy eating',
   },
   {
     icon: 'help-circle-outline',
-    title: '帮助中心',
-    subtitle: '常见问题和使用指南',
+    title: 'Help Center',
+    subtitle: 'FAQ and user guide',
   },
   {
     icon: 'settings-outline',
-    title: '设置',
-    subtitle: '账户设置和隐私选项',
+    title: 'Settings',
+    subtitle: 'Account settings and privacy',
   },
 ];
 
 export default function ProfileScreen() {
+  const { signOut } = useAuth();
+  
   const userInfo = {
-    name: '健康用户',
-    goal: '减脂瘦身',
+    name: 'Healthy User',
+    goal: 'Weight Loss',
     streak: 5,
     totalDays: 18,
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Log Out',
+      'Are you sure you want to log out?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Log Out',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await signOut();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to log out. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -69,27 +97,27 @@ export default function ProfileScreen() {
             <Text style={styles.avatarText}>👤</Text>
           </View>
           <Text style={styles.userName}>{userInfo.name}</Text>
-          <Text style={styles.userGoal}>目标：{userInfo.goal}</Text>
+          <Text style={styles.userGoal}>Goal: {userInfo.goal}</Text>
           
           <View style={styles.statsContainer}>
             <View style={styles.statBox}>
               <Text style={styles.statNumber}>{userInfo.streak}</Text>
-              <Text style={styles.statLabel}>连续天数</Text>
+              <Text style={styles.statLabel}>Streak Days</Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statNumber}>{userInfo.totalDays}</Text>
-              <Text style={styles.statLabel}>总打卡</Text>
+              <Text style={styles.statLabel}>Total Check-ins</Text>
             </View>
             <View style={styles.statBox}>
               <Text style={styles.statNumber}>3</Text>
-              <Text style={styles.statLabel}>奖励数</Text>
+              <Text style={styles.statLabel}>Rewards</Text>
             </View>
           </View>
         </View>
 
         {/* Achievement Cards */}
         <View style={styles.achievementSection}>
-          <Text style={styles.sectionTitle}>近期成就</Text>
+          <Text style={styles.sectionTitle}>Recent Achievements</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -97,18 +125,18 @@ export default function ProfileScreen() {
           >
             <View style={styles.achievementCard}>
               <Text style={styles.achievementIcon}>🔥</Text>
-              <Text style={styles.achievementTitle}>连续打卡</Text>
-              <Text style={styles.achievementDesc}>5天连续</Text>
+              <Text style={styles.achievementTitle}>Streak Master</Text>
+              <Text style={styles.achievementDesc}>5 day streak</Text>
             </View>
             <View style={styles.achievementCard}>
               <Text style={styles.achievementIcon}>🎯</Text>
-              <Text style={styles.achievementTitle}>营养达标</Text>
-              <Text style={styles.achievementDesc}>本周85%</Text>
+              <Text style={styles.achievementTitle}>Nutrition Goal</Text>
+              <Text style={styles.achievementDesc}>85% this week</Text>
             </View>
             <View style={styles.achievementCard}>
               <Text style={styles.achievementIcon}>🏆</Text>
-              <Text style={styles.achievementTitle}>新手奖励</Text>
-              <Text style={styles.achievementDesc}>已获得</Text>
+              <Text style={styles.achievementTitle}>Newbie Reward</Text>
+              <Text style={styles.achievementDesc}>Earned</Text>
             </View>
           </ScrollView>
         </View>
@@ -132,8 +160,8 @@ export default function ProfileScreen() {
         {/* Version Info */}
         <View style={styles.versionSection}>
           <Text style={styles.versionText}>PanPal v1.0.0</Text>
-          <TouchableOpacity style={styles.logoutButton}>
-            <Text style={styles.logoutText}>退出登录</Text>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Log Out</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

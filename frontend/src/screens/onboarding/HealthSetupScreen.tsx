@@ -12,11 +12,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { OnboardingStackParamList } from '../../navigation/RootNavigator';
+import { useHealthData } from '../../contexts/HealthDataContext';
 
 type HealthSetupScreenNavigationProp = NativeStackNavigationProp<OnboardingStackParamList, 'HealthSetup'>;
 
 export default function HealthSetupScreen() {
   const navigation = useNavigation<HealthSetupScreenNavigationProp>();
+  const { setHealthData } = useHealthData();
+  
   const [gender, setGender] = useState<'male' | 'female' | null>(null);
   const [age, setAge] = useState('');
   const [height, setHeight] = useState('');
@@ -32,6 +35,15 @@ export default function HealthSetupScreen() {
 
   const handleNext = () => {
     if (gender && age && height && weight && goal) {
+      // Store health data in context
+      setHealthData({
+        age: parseInt(age),
+        gender,
+        height: parseInt(height),
+        weight: parseInt(weight),
+        goal: goal as 'lose_fat' | 'gain_muscle' | 'control_sugar' | 'maintain',
+      });
+      
       navigation.navigate('PreferencesSetup');
     }
   };

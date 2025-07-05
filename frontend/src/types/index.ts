@@ -1,5 +1,7 @@
 export interface UserProfile {
   id: string;
+  email?: string;
+  wechatId?: string;
   name: string;
   age: number;
   gender: 'male' | 'female';
@@ -12,6 +14,8 @@ export interface UserProfile {
   dislikes: string[];
   cookingTime: '<15' | '15-30' | '>30';
   budget: 'economic' | 'standard' | 'premium';
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface Recipe {
