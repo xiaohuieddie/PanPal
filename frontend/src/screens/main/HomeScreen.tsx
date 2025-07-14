@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,17 +6,78 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
+  Modal,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../utils/theme';
+import { useMealPlan } from '../../contexts/MealPlanContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function HomeScreen() {
+  const { userProfile } = useAuth();
+  const { todayMeals, currentMealPlan, loading, refreshMealPlan } = useMealPlan();
+  const [showWeeklyModal, setShowWeeklyModal] = useState(false);
+  
   const weeklyProgress = 3; // out of 7 days
   const streakDays = 5;
   const currentDate = new Date().toLocaleDateString('en-US', { 
     month: 'short', 
     day: 'numeric' 
   });
+
+  const handleRefreshMeals = async () => {
+    await refreshMealPlan();
+  };
+
+  const renderMealCard = (meal: any, mealType: string) => (
+    <View style={styles.mealCard}>
+      <View style={styles.mealHeader}>
+        <Text style={styles.mealType}>{mealType}</Text>
+        <Text style={styles.mealCalories}>{meal.nutrition?.calories || 0} kcal</Text>
+      </View>
+      <Text style={styles.mealName}>{meal.name}</Text>
+      <Text style={styles.mealTime}>{meal.cookingTime} min</Text>
+    </View>
+  );
+
+  const renderWeeklyView = () => (
+    <Modal
+      visible={showWeeklyModal}
+      animationType="slide"
+      presentationStyle="pageSheet"
+    >
+      <SafeAreaView style={styles.modalContainer}>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalTitle}>Weekly Meal Plan</Text>
+          <TouchableOpacity 
+            style={styles.closeButton}
+            onPress={() => setShowWeeklyModal(false)}
+          >
+            <Ionicons name="close" size={24} color="#333" />
+          </TouchableOpacity>
+        </View>
+        
+        <ScrollView style={styles.modalContent}>
+          {currentMealPlan?.meals.map((day, index) => (
+            <View key={index} style={styles.weeklyDayCard}>
+              <Text style={styles.weeklyDayTitle}>{day.date}</Text>
+              <View style={styles.weeklyMealsContainer}>
+                {renderMealCard(day.breakfast, '🌅 Breakfast')}
+                {renderMealCard(day.lunch, '☀️ Lunch')}
+                {renderMealCard(day.dinner, '🌙 Dinner')}
+              </View>
+              <View style={styles.dailyNutrition}>
+                <Text style={styles.nutritionText}>
+                  {day.totalCalories || 0} kcal • {day.totalProtein || 0}g protein • {day.totalFat || 0}g fat • {day.totalCarbs || 0}g carbs
+                </Text>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -26,7 +87,7 @@ export default function HomeScreen() {
           <View style={styles.headerTop}>
             <View>
               <Text style={styles.dateText}>{currentDate}</Text>
-              <Text style={styles.greeting}>Hi, User</Text>
+              <Text style={styles.greeting}>Hi, {userProfile?.name || 'User'}</Text>
             </View>
             <View style={styles.avatarContainer}>
               <Text style={styles.avatarText}>🍳</Text>
@@ -35,26 +96,65 @@ export default function HomeScreen() {
           <Text style={styles.subtitle}>What would you like to cook today?</Text>
         </View>
 
-        {/* Featured Recipe Card */}
-        <View style={styles.featuredSection}>
-          <LinearGradient
-            colors={theme.gradients.primary as [string, string]}
-            style={styles.featuredCard}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.featuredContent}>
-              <Text style={styles.featuredTitle}>Garlic Broccoli Chicken Breast</Text>
-              <Text style={styles.featuredSubtitle}>Balanced Nutrition • 25 min</Text>
-              <TouchableOpacity style={styles.continueButton}>
-                <Text style={styles.continueButtonText}>▶ Continue Cooking</Text>
+        {/* Today's Menu Section */}
+        <View style={styles.todayMenuSection}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Today's Menu</Text>
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.refreshButton} onPress={handleRefreshMeals}>
+                <Ionicons name="refresh" size={16} color={theme.colors.primary} />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.expandButton} 
+                onPress={() => setShowWeeklyModal(true)}
+              >
+                <Ionicons name="calendar-outline" size={16} color={theme.colors.primary} />
+                <Text style={styles.expandButtonText}>Weekly</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.featuredImageContainer}>
-              <Text style={styles.featuredImagePlaceholder}>🍖</Text>
+          </View>
+
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <Text style={styles.loadingText}>Generating your personalized menu...</Text>
             </View>
-          </LinearGradient>
+          ) : todayMeals ? (
+            <LinearGradient
+              colors={theme.gradients.primary as [string, string]}
+              style={styles.todayMenuCard}
+            >
+              <View style={styles.todayMenuContent}>
+                <Text style={styles.todayMenuTitle}>Your Personalized Meals</Text>
+                
+                <View style={styles.todayMealsContainer}>
+                  {renderMealCard(todayMeals.breakfast, '🌅 Breakfast')}
+                  {renderMealCard(todayMeals.lunch, '☀️ Lunch')}
+                  {renderMealCard(todayMeals.dinner, '🌙 Dinner')}
+                </View>
+
+                <View style={styles.todayNutrition}>
+                  <Text style={styles.todayNutritionTitle}>Today's Nutrition</Text>
+                  <Text style={styles.todayNutritionText}>
+                    {todayMeals.totalCalories} kcal • {todayMeals.totalProtein}g protein • {todayMeals.totalFat}g fat • {todayMeals.totalCarbs}g carbs
+                  </Text>
+                </View>
+
+                <TouchableOpacity style={styles.startCookingButton}>
+                  <Text style={styles.startCookingText}>Start Cooking</Text>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
+          ) : (
+            <View style={styles.noMealsContainer}>
+              <Text style={styles.noMealsText}>No meals generated yet</Text>
+              <TouchableOpacity style={styles.generateButton} onPress={handleRefreshMeals}>
+                <Text style={styles.generateButtonText}>Generate Menu</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
+
+
 
         {/* Best Chef Section */}
         <View style={styles.section}>
@@ -156,6 +256,9 @@ export default function HomeScreen() {
         </View>
 
       </ScrollView>
+
+      {/* Weekly Modal */}
+      {renderWeeklyView()}
     </SafeAreaView>
   );
 }
@@ -204,55 +307,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 24,
   },
-  featuredSection: {
-    marginBottom: theme.spacing.xxl,
-  },
-  featuredCard: {
-    borderRadius: theme.borderRadius.large,
-    padding: theme.spacing.xl,
-    flexDirection: 'row',
-    alignItems: 'center',
-    ...theme.shadows.medium,
-  },
-  featuredContent: {
-    flex: 1,
-  },
-  featuredTitle: {
-    fontSize: theme.fontSize.xl,
-    fontWeight: 'bold',
-    color: theme.colors.text.white,
-    marginBottom: theme.spacing.xs,
-  },
-  featuredSubtitle: {
-    fontSize: theme.fontSize.sm,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: theme.spacing.lg,
-  },
-  continueButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.borderRadius.xl,
-    alignSelf: 'flex-start',
-  },
-  continueButtonText: {
-    color: theme.colors.text.white,
-    fontSize: theme.fontSize.sm,
-    fontWeight: '600',
-  },
-  featuredImageContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: theme.borderRadius.large,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: theme.spacing.lg,
-  },
-  featuredImagePlaceholder: {
-    fontSize: 40,
-  },
-  section: {
+  todayMenuSection: {
     marginBottom: theme.spacing.xxl,
   },
   sectionHeader: {
@@ -270,6 +325,132 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.sm,
     color: theme.colors.primary,
     fontWeight: '600',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  refreshButton: {
+    padding: theme.spacing.sm,
+  },
+  expandButton: {
+    padding: theme.spacing.sm,
+  },
+  expandButtonText: {
+    fontSize: theme.fontSize.sm,
+    color: theme.colors.primary,
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.secondary,
+  },
+  todayMenuCard: {
+    borderRadius: theme.borderRadius.large,
+    padding: theme.spacing.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
+    ...theme.shadows.medium,
+  },
+  todayMenuContent: {
+    flex: 1,
+  },
+  todayMenuTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: 'bold',
+    color: theme.colors.text.white,
+    marginBottom: theme.spacing.xs,
+  },
+  todayMealsContainer: {
+    marginBottom: theme.spacing.lg,
+    gap: theme.spacing.md,
+  },
+  todayNutrition: {
+    marginBottom: theme.spacing.xl,
+  },
+  todayNutritionTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: 'bold',
+    color: theme.colors.text.white,
+    marginBottom: theme.spacing.sm,
+  },
+  todayNutritionText: {
+    fontSize: theme.fontSize.xxl,
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+  },
+  startCookingButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.xl,
+    alignSelf: 'flex-start',
+  },
+  startCookingText: {
+    color: theme.colors.text.white,
+    fontSize: theme.fontSize.sm,
+    fontWeight: '600',
+  },
+  noMealsContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noMealsText: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.secondary,
+    marginBottom: theme.spacing.md,
+  },
+  generateButton: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.xl,
+  },
+  generateButtonText: {
+    color: theme.colors.text.white,
+    fontSize: theme.fontSize.sm,
+    fontWeight: '600',
+  },
+  section: {
+    marginBottom: theme.spacing.xxl,
+  },
+  mealCard: {
+    flex: 1,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.large,
+    backgroundColor: theme.colors.surface,
+    marginBottom: theme.spacing.sm,
+    ...theme.shadows.medium,
+  },
+  mealHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  mealType: {
+    fontSize: theme.fontSize.sm,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+  },
+  mealCalories: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.text.secondary,
+  },
+  mealName: {
+    fontSize: theme.fontSize.md,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+  },
+  mealTime: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.text.secondary,
   },
   chefScrollContent: {
     paddingRight: theme.spacing.xl,
@@ -395,5 +576,47 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSize.md,
     color: theme.colors.text.secondary,
     fontWeight: '500',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: theme.spacing.md,
+  },
+  modalTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+  },
+  closeButton: {
+    padding: theme.spacing.sm,
+  },
+  modalContent: {
+    flex: 1,
+  },
+  weeklyDayCard: {
+    padding: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.primaryLight,
+  },
+  weeklyDayTitle: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: 'bold',
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.sm,
+  },
+  weeklyMealsContainer: {
+    marginBottom: theme.spacing.md,
+  },
+  dailyNutrition: {
+    marginTop: theme.spacing.md,
+  },
+  nutritionText: {
+    fontSize: theme.fontSize.xs,
+    color: theme.colors.text.secondary,
   },
 });

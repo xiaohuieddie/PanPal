@@ -1,5 +1,13 @@
+import 'dotenv/config';
 import * as functions from 'firebase-functions';
 import app from './app';
+
+// Set default environment variables for development
+if (process.env.NODE_ENV !== 'production') {
+  process.env.NODE_ENV = 'development';
+  process.env.JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
+  process.env.CORS_ORIGINS = process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:19006';
+}
 
 // Export the Express app as a Firebase Function
 export const api = functions.https.onRequest(app);

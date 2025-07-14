@@ -1,6 +1,7 @@
 #!/bin/bash
 
-echo "🚀 Setting up PanPal Backend..."
+echo "🚀 PanPal Backend Quick Start"
+echo "=============================="
 
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then
@@ -21,34 +22,32 @@ echo "✅ Node.js version: $(node -v)"
 if ! command -v firebase &> /dev/null; then
     echo "📦 Installing Firebase CLI..."
     npm install -g firebase-tools
-else
-    echo "✅ Firebase CLI is already installed"
+fi
+
+echo "✅ Firebase CLI version: $(firebase --version)"
+
+# Check if .env file exists
+if [ ! -f .env ]; then
+    echo "📝 Creating .env file from template..."
+    cp env.example .env
+    echo "⚠️  Please edit .env file with your Firebase project details"
+    echo "   You can find these in Firebase Console > Project Settings > Service Accounts"
 fi
 
 # Install dependencies
 echo "📦 Installing dependencies..."
 npm install
 
-# Create .env file if it doesn't exist
-if [ ! -f .env ]; then
-    echo "📝 Creating .env file from template..."
-    cp env.example .env
-    echo "⚠️  Please update .env file with your Firebase configuration"
-else
-    echo "✅ .env file already exists"
-fi
-
 # Build the project
-echo "🔨 Building TypeScript..."
+echo "🔨 Building the project..."
 npm run build
 
 echo ""
-echo "🎉 Setup complete!"
+echo "✅ Setup complete!"
 echo ""
 echo "Next steps:"
-echo "1. Update .env file with your Firebase configuration"
-echo "2. Run 'firebase login' to authenticate with Firebase"
-echo "3. Run 'firebase init' to initialize Firebase project"
-echo "4. Run 'npm run serve' to start local development"
+echo "1. Edit .env file with your Firebase project details"
+echo "2. Run: npm run dev"
+echo "3. Test the API: npm run test:ai"
 echo ""
-echo "For detailed instructions, see README.md" 
+echo "API will be available at: http://localhost:5001/panpal-backend/us-central1/api" 

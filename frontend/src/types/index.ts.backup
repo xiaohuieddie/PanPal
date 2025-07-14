@@ -28,8 +28,6 @@ export interface Recipe {
   cookingTime: number;
   difficulty: 'easy' | 'medium' | 'hard';
   tags: string[];
-  cuisine?: string;
-  budget?: 'economic' | 'standard' | 'premium';
 }
 
 export interface Ingredient {
@@ -57,10 +55,6 @@ export interface DailyMeals {
   breakfast: Recipe;
   lunch: Recipe;
   dinner: Recipe;
-  totalCalories?: number;
-  totalProtein?: number;
-  totalFat?: number;
-  totalCarbs?: number;
 }
 
 export interface CheckIn {

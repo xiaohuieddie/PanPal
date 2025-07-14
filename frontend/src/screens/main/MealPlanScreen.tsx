@@ -8,47 +8,75 @@ import {
   SafeAreaView,
   Image,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../utils/theme';
-
-const mockMealPlan = [
-  {
-    date: '2024-07-01',
-    day: '周一',
-    meals: {
-      breakfast: { name: '燕麦牛奶杯', calories: 320, time: '15分钟' },
-      lunch: { name: '蒜蓉西兰花鸡胸肉', calories: 450, time: '25分钟' },
-      dinner: { name: '番茄鸡蛋面', calories: 380, time: '20分钟' },
-    },
-  },
-  {
-    date: '2024-07-02',
-    day: '周二',
-    meals: {
-      breakfast: { name: '全麦吐司配牛油果', calories: 280, time: '10分钟' },
-      lunch: { name: '香煎三文鱼配糙米', calories: 520, time: '30分钟' },
-      dinner: { name: '冬瓜排骨汤', calories: 300, time: '45分钟' },
-    },
-  },
-  {
-    date: '2024-07-03',
-    day: '周三',
-    meals: {
-      breakfast: { name: '紫薯小米粥', calories: 240, time: '20分钟' },
-      lunch: { name: '虾仁炒河粉', calories: 420, time: '25分钟' },
-      dinner: { name: '蒸蛋羹配青菜', calories: 260, time: '15分钟' },
-    },
-  },
-];
+import { useMealPlan } from '../../contexts/MealPlanContext';
 
 export default function MealPlanScreen() {
+  const { currentMealPlan, loading, refreshMealPlan } = useMealPlan();
   const [selectedDay, setSelectedDay] = useState(0);
+
+  const handleRefresh = async () => {
+    await refreshMealPlan();
+  };
+
+  const renderMealCard = (meal: any, mealType: string) => (
+    <View style={styles.mealSection}>
+      <Text style={styles.mealTypeTitle}>{mealType}</Text>
+      <TouchableOpacity style={styles.recipeCard}>
+        <View style={styles.recipeImage}>
+          <Text style={styles.recipeImagePlaceholder}>
+            {mealType.includes('Breakfast') ? '🥣' : mealType.includes('Lunch') ? '🍖' : '🍜'}
+          </Text>
+        </View>
+        <View style={styles.recipeInfo}>
+          <Text style={styles.recipeName}>{meal.name}</Text>
+          <Text style={styles.recipeDetails}>
+            {meal.calories} kcal • {meal.cookingTime} min
+          </Text>
+          <View style={styles.recipeActions}>
+            <TouchableOpacity style={styles.viewRecipeButton}>
+              <Text style={styles.viewRecipeText}>View Recipe</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.replaceButton}>
+              <Text style={styles.replaceText}>Replace</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Generating your personalized meal plan...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!currentMealPlan) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.noMealPlanContainer}>
+          <Text style={styles.noMealPlanText}>No meal plan generated yet</Text>
+          <TouchableOpacity style={styles.generateButton} onPress={handleRefresh}>
+            <Text style={styles.generateButtonText}>Generate Meal Plan</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>本周菜谱</Text>
-        <TouchableOpacity style={styles.refreshButton}>
-          <Text style={styles.refreshText}>🔄 换一换</Text>
+        <Text style={styles.title}>Weekly Meal Plan</Text>
+        <TouchableOpacity style={styles.refreshButton} onPress={handleRefresh}>
+          <Ionicons name="refresh" size={20} color={theme.colors.primary} />
+          <Text style={styles.refreshText}>Refresh</Text>
         </TouchableOpacity>
       </View>
 
@@ -59,7 +87,7 @@ export default function MealPlanScreen() {
         style={styles.weekNav}
         contentContainerStyle={styles.weekNavContent}
       >
-        {mockMealPlan.map((day, index) => (
+        {currentMealPlan.dailyMeals.map((day, index) => (
           <TouchableOpacity
             key={index}
             style={[
@@ -84,106 +112,54 @@ export default function MealPlanScreen() {
         {/* Daily Meals */}
         <View style={styles.dayContainer}>
           <Text style={styles.dateText}>
-            {mockMealPlan[selectedDay].day} • {mockMealPlan[selectedDay].date}
+            {currentMealPlan.dailyMeals[selectedDay].day} • {currentMealPlan.dailyMeals[selectedDay].date}
           </Text>
 
           {/* Breakfast */}
-          <View style={styles.mealSection}>
-            <Text style={styles.mealTypeTitle}>🌅 早餐</Text>
-            <TouchableOpacity style={styles.recipeCard}>
-              <View style={styles.recipeImage}>
-                <Text style={styles.recipeImagePlaceholder}>🥣</Text>
-              </View>
-              <View style={styles.recipeInfo}>
-                <Text style={styles.recipeName}>
-                  {mockMealPlan[selectedDay].meals.breakfast.name}
-                </Text>
-                <Text style={styles.recipeDetails}>
-                  {mockMealPlan[selectedDay].meals.breakfast.calories} kcal • {mockMealPlan[selectedDay].meals.breakfast.time}
-                </Text>
-                <View style={styles.recipeActions}>
-                  <TouchableOpacity style={styles.viewRecipeButton}>
-                    <Text style={styles.viewRecipeText}>查看食谱</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.replaceButton}>
-                    <Text style={styles.replaceText}>换一换</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableOpacity>
-          </View>
+          {renderMealCard(
+            currentMealPlan.dailyMeals[selectedDay].meals.breakfast,
+            '🌅 Breakfast'
+          )}
 
           {/* Lunch */}
-          <View style={styles.mealSection}>
-            <Text style={styles.mealTypeTitle}>☀️ 午餐</Text>
-            <TouchableOpacity style={styles.recipeCard}>
-              <View style={styles.recipeImage}>
-                <Text style={styles.recipeImagePlaceholder}>🍖</Text>
-              </View>
-              <View style={styles.recipeInfo}>
-                <Text style={styles.recipeName}>
-                  {mockMealPlan[selectedDay].meals.lunch.name}
-                </Text>
-                <Text style={styles.recipeDetails}>
-                  {mockMealPlan[selectedDay].meals.lunch.calories} kcal • {mockMealPlan[selectedDay].meals.lunch.time}
-                </Text>
-                <View style={styles.recipeActions}>
-                  <TouchableOpacity style={styles.viewRecipeButton}>
-                    <Text style={styles.viewRecipeText}>查看食谱</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.replaceButton}>
-                    <Text style={styles.replaceText}>换一换</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableOpacity>
-          </View>
+          {renderMealCard(
+            currentMealPlan.dailyMeals[selectedDay].meals.lunch,
+            '☀️ Lunch'
+          )}
 
           {/* Dinner */}
-          <View style={styles.mealSection}>
-            <Text style={styles.mealTypeTitle}>🌙 晚餐</Text>
-            <TouchableOpacity style={styles.recipeCard}>
-              <View style={styles.recipeImage}>
-                <Text style={styles.recipeImagePlaceholder}>🍜</Text>
-              </View>
-              <View style={styles.recipeInfo}>
-                <Text style={styles.recipeName}>
-                  {mockMealPlan[selectedDay].meals.dinner.name}
-                </Text>
-                <Text style={styles.recipeDetails}>
-                  {mockMealPlan[selectedDay].meals.dinner.calories} kcal • {mockMealPlan[selectedDay].meals.dinner.time}
-                </Text>
-                <View style={styles.recipeActions}>
-                  <TouchableOpacity style={styles.viewRecipeButton}>
-                    <Text style={styles.viewRecipeText}>查看食谱</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.replaceButton}>
-                    <Text style={styles.replaceText}>换一换</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </TouchableOpacity>
-          </View>
+          {renderMealCard(
+            currentMealPlan.dailyMeals[selectedDay].meals.dinner,
+            '🌙 Dinner'
+          )}
 
           {/* Daily Nutrition Summary */}
           <View style={styles.nutritionCard}>
-            <Text style={styles.nutritionTitle}>今日营养摄入</Text>
+            <Text style={styles.nutritionTitle}>Today's Nutrition</Text>
             <View style={styles.nutritionRow}>
               <View style={styles.nutritionItem}>
-                <Text style={styles.nutritionValue}>1,150</Text>
-                <Text style={styles.nutritionLabel}>总热量</Text>
+                <Text style={styles.nutritionValue}>
+                  {currentMealPlan.dailyMeals[selectedDay].totalCalories}
+                </Text>
+                <Text style={styles.nutritionLabel}>Total Calories</Text>
               </View>
               <View style={styles.nutritionItem}>
-                <Text style={styles.nutritionValue}>78g</Text>
-                <Text style={styles.nutritionLabel}>蛋白质</Text>
+                <Text style={styles.nutritionValue}>
+                  {currentMealPlan.dailyMeals[selectedDay].totalProtein}g
+                </Text>
+                <Text style={styles.nutritionLabel}>Protein</Text>
               </View>
               <View style={styles.nutritionItem}>
-                <Text style={styles.nutritionValue}>32g</Text>
-                <Text style={styles.nutritionLabel}>脂肪</Text>
+                <Text style={styles.nutritionValue}>
+                  {currentMealPlan.dailyMeals[selectedDay].totalFat}g
+                </Text>
+                <Text style={styles.nutritionLabel}>Fat</Text>
               </View>
               <View style={styles.nutritionItem}>
-                <Text style={styles.nutritionValue}>145g</Text>
-                <Text style={styles.nutritionLabel}>碳水</Text>
+                <Text style={styles.nutritionValue}>
+                  {currentMealPlan.dailyMeals[selectedDay].totalCarbs}g
+                </Text>
+                <Text style={styles.nutritionLabel}>Carbs</Text>
               </View>
             </View>
           </View>
@@ -193,7 +169,7 @@ export default function MealPlanScreen() {
       {/* Generate Shopping List Button */}
       <View style={styles.footer}>
         <TouchableOpacity style={styles.shoppingListButton}>
-          <Text style={styles.shoppingListText}>🛒 生成购物清单</Text>
+          <Text style={styles.shoppingListText}>🛒 Generate Shopping List</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -388,6 +364,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   shoppingListText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 20,
+  },
+  noMealPlanContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noMealPlanText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 20,
+  },
+  generateButton: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: 16,
+    borderRadius: theme.borderRadius.medium,
+    alignItems: 'center',
+  },
+  generateButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: 'white',

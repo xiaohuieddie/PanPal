@@ -1,13 +1,17 @@
 import * as admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
+import * as path from 'path';
+
+// Load service account key
+const serviceAccountPath = path.join(__dirname, '../../serviceAccountKey.json');
+const serviceAccount = require(serviceAccountPath);
 
 // Initialize Firebase Admin SDK
 if (!admin.apps.length) {
   admin.initializeApp({
-    // In production, this will use the default service account
-    // In development, you can use a service account key file
-    // credential: admin.credential.cert(serviceAccountKey),
+    credential: admin.credential.cert(serviceAccount),
+    projectId: serviceAccount.project_id
   });
 }
 

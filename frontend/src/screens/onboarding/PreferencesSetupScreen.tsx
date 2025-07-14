@@ -16,6 +16,7 @@ import { useOnboarding } from '../../utils/OnboardingContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSignUp } from '../../contexts/SignUpContext';
 import { useHealthData } from '../../contexts/HealthDataContext';
+import { useMealPlan } from '../../contexts/MealPlanContext';
 
 type PreferencesSetupScreenNavigationProp = NativeStackNavigationProp<OnboardingStackParamList, 'PreferencesSetup'>;
 
@@ -42,6 +43,7 @@ export default function PreferencesSetupScreen() {
   const { credentials } = useSignUp();
   const { signUp } = useAuth();
   const { completeOnboarding } = useOnboarding();
+  const { generateMealPlan } = useMealPlan();
   
   const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
   const [cookingTime, setCookingTime] = useState<string>('');
@@ -94,6 +96,9 @@ export default function PreferencesSetupScreen() {
       
       // Mark onboarding as complete
       await completeOnboarding();
+      
+      // Generate personalized meal plan
+      await generateMealPlan();
       
       // Navigation will be handled automatically by AuthContext
     } catch (error: any) {
