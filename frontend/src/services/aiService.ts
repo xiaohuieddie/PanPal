@@ -36,7 +36,7 @@ export class AIService {
       console.log(`🌐 [AIService] Making ${method} request to: ${API_BASE_URL}${endpoint}`);
       
       const token = await this.getAuthToken();
-      console.log('🔑 [AIService] Token obtained, making request...');
+      console.log(`🔑 [AIService] Token obtained: ${token}, making request...`);
       
       const requestConfig = {
         method,
@@ -281,6 +281,7 @@ export class AIService {
       if (!mealPlan) {
         console.log('🔄 [AIService] No existing meal plan found, generating new one...');
         mealPlan = await this.generateWeeklyMealPlan(userProfile);
+        console.log('✅ [AIService] New meal plan generated successfully: ', JSON.stringify(mealPlan, null, 2));
       } else {
         console.log('✅ [AIService] Existing meal plan found');
       }

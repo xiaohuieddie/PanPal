@@ -1,5 +1,6 @@
 import { UserProfile, Recipe, MealPlan, DailyMeals } from '../types';
 import OpenAI from 'openai';
+import { db } from '../config/firebase';
 
 export class AIService {
   private static openai: OpenAI;
@@ -32,132 +33,87 @@ export class AIService {
       const today = new Date();
       const weekStartDate = this.getWeekStartDate(today);
       
+      // Generate 7 days of meals starting from the week start date
+      const meals = [];
+      for (let i = 0; i < 7; i++) {
+        const currentDate = new Date(weekStartDate);
+        currentDate.setDate(weekStartDate.getDate() + i);
+        const dateString = currentDate.toISOString().split('T')[0];
+        
+        meals.push({
+          date: dateString,
+                  breakfast: {
+          id: "fallback-recipe",
+          name: `Balanced Breakfast ${i + 1}`,
+          image: "",
+          ingredients: [
+            { id: "1", name: "Protein source", amount: "100", unit: "g" },
+            { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
+            { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
+          ],
+          steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
+          nutrition: { calories: 737.75, protein: 46, fat: 25, carbs: 83 },
+          cookingTime: 20,
+          difficulty: "easy" as const,
+          tags: ["balanced", "healthy"],
+          cuisine: "International",
+          budget: "standard" as const
+        },
+        lunch: {
+          id: "fallback-recipe",
+          name: `Balanced Lunch ${i + 1}`,
+          image: "",
+          ingredients: [
+            { id: "1", name: "Protein source", amount: "100", unit: "g" },
+            { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
+            { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
+          ],
+          steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
+          nutrition: { calories: 1032.85, protein: 65, fat: 34, carbs: 116 },
+          cookingTime: 20,
+          difficulty: "easy" as const,
+          tags: ["balanced", "healthy"],
+          cuisine: "International",
+          budget: "standard" as const
+        },
+        dinner: {
+          id: "fallback-recipe",
+          name: `Balanced Dinner ${i + 1}`,
+          image: "",
+          ingredients: [
+            { id: "1", name: "Protein source", amount: "100", unit: "g" },
+            { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
+            { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
+          ],
+          steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
+          nutrition: { calories: 1180.4, protein: 74, fat: 39, carbs: 133 },
+          cookingTime: 20,
+          difficulty: "easy" as const,
+          tags: ["balanced", "healthy"],
+          cuisine: "International",
+          budget: "standard" as const
+        },
+          totalCalories: 2951,
+          totalProtein: 185,
+          totalFat: 98,
+          totalCarbs: 332
+        });
+      }
+      
       const mockMealPlan: MealPlan = {
         id: `meal-plan-${Date.now()}`,
         userId: userProfile.id,
         week: weekStartDate.toISOString().split('T')[0],
-        meals: [
-          {
-            date: "2025-07-13",
-            breakfast: {
-              id: "fallback-recipe",
-              name: "Balanced Meal 1",
-              image: "",
-              ingredients: [
-                { id: "1", name: "Protein source", amount: "100", unit: "g" },
-                { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
-                { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
-              ],
-              steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
-              nutrition: { calories: 737.75, protein: 46, fat: 25, carbs: 83 },
-              cookingTime: 20,
-              difficulty: "easy",
-              tags: ["balanced", "healthy"],
-              cuisine: "International",
-              budget: "standard"
-            },
-            lunch: {
-              id: "fallback-recipe",
-              name: "Balanced Meal 2",
-              image: "",
-              ingredients: [
-                { id: "1", name: "Protein source", amount: "100", unit: "g" },
-                { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
-                { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
-              ],
-              steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
-              nutrition: { calories: 1032.85, protein: 65, fat: 34, carbs: 116 },
-              cookingTime: 20,
-              difficulty: "easy",
-              tags: ["balanced", "healthy"],
-              cuisine: "International",
-              budget: "standard"
-            },
-            dinner: {
-              id: "fallback-recipe",
-              name: "Balanced Meal 3",
-              image: "",
-              ingredients: [
-                { id: "1", name: "Protein source", amount: "100", unit: "g" },
-                { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
-                { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
-              ],
-              steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
-              nutrition: { calories: 1180.4, protein: 74, fat: 39, carbs: 133 },
-              cookingTime: 20,
-              difficulty: "easy",
-              tags: ["balanced", "healthy"],
-              cuisine: "International",
-              budget: "standard"
-            },
-            totalCalories: 2951,
-            totalProtein: 185,
-            totalFat: 98,
-            totalCarbs: 332
-          },
-          {
-            date: "2025-07-14",
-            breakfast: {
-              id: "fallback-recipe",
-              name: "Balanced Meal",
-              image: "",
-              ingredients: [
-                { id: "1", name: "Protein source", amount: "100", unit: "g" },
-                { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
-                { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
-              ],
-              steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
-              nutrition: { calories: 737.75, protein: 46, fat: 25, carbs: 83 },
-              cookingTime: 20,
-              difficulty: "easy",
-              tags: ["balanced", "healthy"],
-              cuisine: "International",
-              budget: "standard"
-            },
-            lunch: {
-              id: "fallback-recipe",
-              name: "Balanced Meal",
-              image: "",
-              ingredients: [
-                { id: "1", name: "Protein source", amount: "100", unit: "g" },
-                { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
-                { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
-              ],
-              steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
-              nutrition: { calories: 1032.85, protein: 65, fat: 34, carbs: 116 },
-              cookingTime: 20,
-              difficulty: "easy",
-              tags: ["balanced", "healthy"],
-              cuisine: "International",
-              budget: "standard"
-            },
-            dinner: {
-              id: "fallback-recipe",
-              name: "Balanced Meal",
-              image: "",
-              ingredients: [
-                { id: "1", name: "Protein source", amount: "100", unit: "g" },
-                { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
-                { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
-              ],
-              steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
-              nutrition: { calories: 1180.4, protein: 74, fat: 39, carbs: 133 },
-              cookingTime: 20,
-              difficulty: "easy",
-              tags: ["balanced", "healthy"],
-              cuisine: "International",
-              budget: "standard"
-            },
-            totalCalories: 2951,
-            totalProtein: 185,
-            totalFat: 98,
-            totalCarbs: 332
-          }
-        ],
+        meals: meals,
         createdAt: new Date()
       };
       
-      console.log('✅ [AIService] Mock meal plan generated successfully!');
+      // Save the generated meal plan to Firebase
+      await this.saveMealPlan(mockMealPlan);
+      
+      console.log('✅ [AIService] Mock meal plan generated and saved successfully!');
+      console.log(`📅 [AIService] Week start: ${weekStartDate.toISOString().split('T')[0]}`);
+      console.log(`🍽️ [AIService] Generated ${meals.length} days of meals`);
       return mockMealPlan;
     } catch (error) {
       console.error('Error generating meal plan:', error);
@@ -363,10 +319,10 @@ Please format your response as a structured meal plan that can be easily parsed 
         carbs: nutrition.carbs
       },
       cookingTime: 30,
-      difficulty: 'medium',
+      difficulty: 'medium' as const,
       tags: [mealType, 'ai-generated'],
       cuisine: 'International',
-      budget: 'standard'
+      budget: 'standard' as const
     };
   }
 
@@ -462,16 +418,34 @@ Please format your response as a structured meal plan that can be easily parsed 
   }
 
   /**
-   * Get available recipes from database based on user preferences
+   * Get available recipes from Firebase Firestore
    */
   private static async getAvailableRecipes(userProfile: UserProfile): Promise<Recipe[]> {
     try {
-      // For now, return fallback recipes since we don't have a recipes collection set up
-      // In production, you would query Firestore here
-      return this.getFallbackRecipes();
+      console.log('📚 [AIService] Fetching recipes from Firebase...');
+      
+      // Query recipes from Firestore using Admin SDK
+      const recipesSnapshot = await db.collection('recipes').get();
+      
+      if (recipesSnapshot.empty) {
+        console.log('ℹ️ [AIService] No recipes found in database, using fallback recipes');
+        return this.getFallbackRecipes();
+      }
+      
+      const recipes: Recipe[] = [];
+      recipesSnapshot.forEach((doc) => {
+        const recipeData = doc.data() as Recipe;
+        recipes.push({
+          ...recipeData,
+          id: doc.id // Ensure the document ID is used as recipe ID
+        });
+      });
+      
+      console.log(`✅ [AIService] Retrieved ${recipes.length} recipes from Firebase`);
+      return recipes;
     } catch (error) {
-      console.error('Error fetching recipes:', error);
-      // Return fallback recipes if database query fails
+      console.error('❌ [AIService] Error fetching recipes from Firebase:', error);
+      console.log('🔄 [AIService] Falling back to mock recipes');
       return this.getFallbackRecipes();
     }
   }
@@ -768,15 +742,24 @@ Please format your response as a structured meal plan that can be easily parsed 
   }
 
   /**
-   * Save meal plan to database
+   * Save meal plan to Firebase Firestore
    */
   private static async saveMealPlan(mealPlan: MealPlan): Promise<void> {
     try {
-      // For now, just log the meal plan since we don't have Firestore set up
-      console.log('Meal plan generated:', mealPlan.id);
-      // In production: await db.collection('mealPlans').doc(mealPlan.id).set(mealPlan);
+      console.log('💾 [AIService] Saving meal plan to Firebase...');
+      
+      // Convert Date objects to Firestore Timestamps
+      const mealPlanData = {
+        ...mealPlan,
+        createdAt: new Date(mealPlan.createdAt)
+      };
+      
+      // Save to Firestore using Admin SDK
+      await db.collection('mealPlans').doc(mealPlan.id).set(mealPlanData);
+      
+      console.log('✅ [AIService] Meal plan saved successfully to Firebase');
     } catch (error) {
-      console.error('Error saving meal plan:', error);
+      console.error('❌ [AIService] Error saving meal plan to Firebase:', error);
       // Don't throw error as meal plan generation can still succeed
     }
   }
@@ -798,10 +781,10 @@ Please format your response as a structured meal plan that can be easily parsed 
         steps: ['Cook oats with water or milk', 'Top with berries and almonds'],
         nutrition: { calories: 320, protein: 12, fat: 8, carbs: 55 },
         cookingTime: 10,
-        difficulty: 'easy',
+        difficulty: 'easy' as const,
         tags: ['breakfast', 'healthy', 'quick'],
         cuisine: 'International',
-        budget: 'economic'
+        budget: 'economic' as const
       },
       {
         id: 'fallback-2',
@@ -815,10 +798,10 @@ Please format your response as a structured meal plan that can be easily parsed 
         steps: ['Season and cook chicken', 'Steam vegetables', 'Combine and serve'],
         nutrition: { calories: 450, protein: 35, fat: 15, carbs: 25 },
         cookingTime: 25,
-        difficulty: 'medium',
+        difficulty: 'medium' as const,
         tags: ['lunch', 'protein', 'healthy'],
         cuisine: 'International',
-        budget: 'standard'
+        budget: 'standard' as const
       }
     ];
   }
@@ -844,24 +827,46 @@ Please format your response as a structured meal plan that can be easily parsed 
         carbs: Math.round(targetCalories * 0.45 / 4) 
       },
       cookingTime: 20,
-      difficulty: 'easy',
+      difficulty: 'easy' as const,
       tags: ['balanced', 'healthy'],
       cuisine: 'International',
-      budget: 'standard'
+      budget: 'standard' as const
     };
   }
 
   /**
-   * Get meal plan for specific week
+   * Get meal plan for specific week from Firebase
    */
   static async getMealPlan(userId: string, week: string): Promise<MealPlan | null> {
     try {
-      // For now, return null since we don't have Firestore set up
-      // In production: const snapshot = await db.collection('mealPlans').where('userId', '==', userId).where('week', '==', week).get();
-      console.log(`Getting meal plan for user ${userId}, week ${week}`);
-      return null;
+      console.log(`📅 [AIService] Getting meal plan from Firebase - User: ${userId}, Week: ${week}`);
+      
+      // Query meal plans from Firestore using Admin SDK
+      const querySnapshot = await db.collection('mealPlans')
+        .where('userId', '==', userId)
+        .where('week', '==', week)
+        .get();
+      
+      if (querySnapshot.empty) {
+        console.log(`ℹ️ [AIService] No meal plan found for user ${userId}, week ${week}`);
+        return null;
+      }
+      
+      // Get the first (and should be only) meal plan for this user and week
+      const doc = querySnapshot.docs[0];
+      const mealPlanData = doc.data() as MealPlan;
+      
+      // Convert Firestore Timestamp back to Date
+      const mealPlan: MealPlan = {
+        ...mealPlanData,
+        id: doc.id,
+        createdAt: mealPlanData.createdAt instanceof Date ? mealPlanData.createdAt : new Date(mealPlanData.createdAt)
+      };
+      
+      console.log('✅ [AIService] Meal plan retrieved successfully from Firebase');
+      return mealPlan;
     } catch (error) {
-      console.error('Error getting meal plan:', error);
+      console.error('❌ [AIService] Error getting meal plan from Firebase:', error);
       return null;
     }
   }
@@ -871,6 +876,8 @@ Please format your response as a structured meal plan that can be easily parsed 
    */
   static async regenerateDayMeals(userId: string, week: string, date: string, mealType: string): Promise<MealPlan | null> {
     try {
+      console.log(`🔄 [AIService] Regenerating day meals - User: ${userId}, Week: ${week}, Date: ${date}, Meal: ${mealType}`);
+      
       // Get current meal plan
       const mealPlan = await this.getMealPlan(userId, week);
       if (!mealPlan) {
@@ -902,9 +909,10 @@ Please format your response as a structured meal plan that can be easily parsed 
       // Save updated meal plan
       await this.saveMealPlan(mealPlan);
 
+      console.log('✅ [AIService] Day meals regenerated and saved successfully');
       return mealPlan;
     } catch (error) {
-      console.error('Error regenerating day meals:', error);
+      console.error('❌ [AIService] Error regenerating day meals:', error);
       throw error;
     }
   }
@@ -914,6 +922,8 @@ Please format your response as a structured meal plan that can be easily parsed 
    */
   static async getRecipeSuggestions(userId: string, mealType: string, limit: number = 10): Promise<Recipe[]> {
     try {
+      console.log(`📖 [AIService] Getting recipe suggestions - User: ${userId}, Meal: ${mealType}, Limit: ${limit}`);
+      
       // Get user profile
       const userProfile = await this.getUserProfile(userId);
       if (!userProfile) {
@@ -927,24 +937,35 @@ Please format your response as a structured meal plan that can be easily parsed 
       const filteredRecipes = this.filterRecipesForMeal(recipes, mealType, userProfile);
 
       // Sort by relevance and return top results
-      return filteredRecipes.slice(0, limit);
+      const suggestions = filteredRecipes.slice(0, limit);
+      
+      console.log(`✅ [AIService] Retrieved ${suggestions.length} recipe suggestions`);
+      return suggestions;
     } catch (error) {
-      console.error('Error getting recipe suggestions:', error);
+      console.error('❌ [AIService] Error getting recipe suggestions:', error);
       return this.getFallbackRecipes().slice(0, limit);
     }
   }
 
   /**
-   * Get user profile from database
+   * Get user profile from Firebase Firestore
    */
   private static async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
-      // For now, return null since we don't have Firestore set up
-      // In production: const doc = await db.collection('users').doc(userId).get();
-      console.log(`Getting user profile for ${userId}`);
-      return null;
+      console.log(`👤 [AIService] Getting user profile from Firebase - User: ${userId}`);
+      
+      const userDoc = await db.collection('users').doc(userId).get();
+      
+      if (!userDoc.exists) {
+        console.log(`ℹ️ [AIService] User profile not found for ${userId}`);
+        return null;
+      }
+      
+      const userProfile = userDoc.data() as UserProfile;
+      console.log('✅ [AIService] User profile retrieved successfully from Firebase');
+      return userProfile;
     } catch (error) {
-      console.error('Error getting user profile:', error);
+      console.error('❌ [AIService] Error getting user profile from Firebase:', error);
       return null;
     }
   }
