@@ -11,18 +11,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../utils/theme';
 import { useMealPlan } from '../../contexts/MealPlanContext';
-import { useShoppingList } from '../../contexts/ShoppingListContext';
-import ShoppingListPreview from '../../components/ShoppingListPreview';
 
 export default function MealPlanScreen() {
   const { currentMealPlan, loading, refreshMealPlan } = useMealPlan();
-  const { generateShoppingList, currentShoppingList } = useShoppingList();
   const [selectedDay, setSelectedDay] = useState(0);
-
-  const handleViewShoppingList = () => {
-    // Navigate to shopping list tab
-    // This will be handled by the tab navigation
-  };
 
   // Ensure selectedDay is within bounds
   React.useEffect(() => {
@@ -150,14 +142,6 @@ export default function MealPlanScreen() {
       </ScrollView>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Shopping List Preview */}
-        {currentShoppingList && (
-          <ShoppingListPreview
-            shoppingList={currentShoppingList}
-            onViewFullList={handleViewShoppingList}
-          />
-        )}
-
         {/* Daily Meals */}
         <View style={styles.dayContainer}>
           {currentMealPlan.meals[selectedDay] && (
@@ -223,17 +207,7 @@ export default function MealPlanScreen() {
         </View>
       </ScrollView>
 
-      {/* Generate Shopping List Button */}
-      <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.shoppingListButton} 
-          onPress={generateShoppingList}
-        >
-          <Text style={styles.shoppingListText}>
-            {currentShoppingList ? '🛒 View Shopping List' : '🛒 Generate Shopping List'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+
     </SafeAreaView>
   );
 }
@@ -415,21 +389,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
   },
-  footer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  shoppingListButton: {
-    backgroundColor: theme.colors.primary,
-    paddingVertical: 16,
-    borderRadius: theme.borderRadius.medium,
-    alignItems: 'center',
-  },
-  shoppingListText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'white',
-  },
+
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
