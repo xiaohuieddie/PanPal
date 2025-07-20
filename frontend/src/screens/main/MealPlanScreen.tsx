@@ -27,11 +27,14 @@ export default function MealPlanScreen() {
     return 'dinner';
   };
 
+
+
   // Ensure selectedDay is within bounds and set initial meal type
   React.useEffect(() => {
     if (currentMealPlan?.meals && selectedDay >= currentMealPlan.meals.length) {
       setSelectedDay(0);
     }
+    
     // Set initial meal type based on current time
     setSelectedMealType(getCurrentMealType());
   }, [currentMealPlan, selectedDay]);
@@ -149,7 +152,7 @@ export default function MealPlanScreen() {
                 selectedDay === index && styles.selectedDayText,
               ]}
             >
-              {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
+              {new Date(day.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short' })}
             </Text>
           </TouchableOpacity>
         ))}
@@ -161,7 +164,7 @@ export default function MealPlanScreen() {
           {currentMealPlan.meals[selectedDay] && (
             <>
               <Text style={styles.dateText}>
-                {new Date(currentMealPlan.meals[selectedDay].date).toLocaleDateString('en-US', { 
+                {new Date(currentMealPlan.meals[selectedDay].date + 'T12:00:00').toLocaleDateString('en-US', { 
                   weekday: 'long',
                   month: 'long', 
                   day: 'numeric' 
@@ -375,6 +378,7 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
 
+
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -412,6 +416,7 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
   },
+
   content: {
     flex: 1,
     paddingHorizontal: 20,

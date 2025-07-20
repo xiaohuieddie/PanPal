@@ -269,7 +269,7 @@ export class AIService {
       const today = new Date();
       const day = today.getDay();
       const diff = today.getDate() - day;
-      const weekStart = new Date(today.setDate(diff));
+      const weekStart = new Date(today.getFullYear(), today.getMonth(), diff);
       const weekString = weekStart.toISOString().split('T')[0];
       
       console.log(`📅 [AIService] Current week: ${weekString}`);
@@ -285,6 +285,8 @@ export class AIService {
       } else {
         console.log('✅ [AIService] Existing meal plan found');
       }
+
+
 
       return mealPlan;
     } catch (error: any) {

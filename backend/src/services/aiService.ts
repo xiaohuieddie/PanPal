@@ -33,12 +33,17 @@ export class AIService {
       const today = new Date();
       const weekStartDate = this.getWeekStartDate(today);
       
+      console.log(`📅 [AIService] Today: ${today.toISOString().split('T')[0]}`);
+      console.log(`📅 [AIService] Week start: ${weekStartDate.toISOString().split('T')[0]}`);
+      
       // Generate 7 days of meals starting from the week start date
       const meals = [];
       for (let i = 0; i < 7; i++) {
         const currentDate = new Date(weekStartDate);
         currentDate.setDate(weekStartDate.getDate() + i);
         const dateString = currentDate.toISOString().split('T')[0];
+        
+        console.log(`📅 [AIService] Day ${i + 1}: ${dateString} (${currentDate.toLocaleDateString('en-US', { weekday: 'short' })})`);
         
         meals.push({
           date: dateString,
@@ -738,7 +743,7 @@ Please format your response as a structured meal plan that can be easily parsed 
   private static getWeekStartDate(date: Date): Date {
     const day = date.getDay();
     const diff = date.getDate() - day;
-    return new Date(date.setDate(diff));
+    return new Date(date.getFullYear(), date.getMonth(), diff);
   }
 
   /**
