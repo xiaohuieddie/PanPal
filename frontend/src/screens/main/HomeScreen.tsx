@@ -13,10 +13,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../utils/theme';
 import { useMealPlan } from '../../contexts/MealPlanContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigation } from '@react-navigation/native';
+import { useShoppingList } from '../../contexts/ShoppingListContext';
 
 export default function HomeScreen() {
   const { userProfile } = useAuth();
   const { todayMeals, currentMealPlan, loading, refreshMealPlan } = useMealPlan();
+  const { generateShoppingList } = useShoppingList();
+  const navigation = useNavigation();
   const [showWeeklyModal, setShowWeeklyModal] = useState(false);
   
   const weeklyProgress = 3; // out of 7 days
@@ -28,6 +32,17 @@ export default function HomeScreen() {
 
   const handleRefreshMeals = async () => {
     await refreshMealPlan();
+  };
+
+  const handleShopIngredients = async () => {
+    try {
+      // Generate shopping list from current meal plan
+      await generateShoppingList();
+      // Navigate to shopping list tab
+      navigation.navigate('ShoppingList' as never);
+    } catch (error) {
+      console.error('Failed to generate shopping list:', error);
+    }
   };
 
   const renderMealCard = (meal: any, mealType: string) => (
@@ -139,9 +154,15 @@ export default function HomeScreen() {
                   </Text>
                 </View>
 
-                <TouchableOpacity style={styles.startCookingButton}>
-                  <Text style={styles.startCookingText}>Start Cooking</Text>
-                </TouchableOpacity>
+                <View style={styles.actionButtonsContainer}>
+                  <TouchableOpacity style={styles.startCookingButton}>
+                    <Text style={styles.startCookingText}>Start Cooking</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.shopIngredientsButton} onPress={handleShopIngredients}>
+                    <Ionicons name="cart-outline" size={16} color="white" />
+                    <Text style={styles.shopIngredientsText}>Shop Ingredients</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </LinearGradient>
           ) : (
@@ -392,6 +413,26 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   startCookingText: {
+    color: theme.colors.text.white,
+    fontSize: theme.fontSize.sm,
+    fontWeight: '600',
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: theme.spacing.md,
+  },
+  shopIngredientsButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.xl,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+  },
+  shopIngredientsText: {
     color: theme.colors.text.white,
     fontSize: theme.fontSize.sm,
     fontWeight: '600',

@@ -7,6 +7,7 @@ import { AuthProvider } from './src/contexts/AuthContext';
 import { SignUpProvider } from './src/contexts/SignUpContext';
 import { HealthDataProvider } from './src/contexts/HealthDataContext';
 import { MealPlanProvider } from './src/contexts/MealPlanContext';
+import { ShoppingListProvider } from './src/contexts/ShoppingListContext';
 
 export default function App() {
   return (
@@ -14,10 +15,12 @@ export default function App() {
       <SignUpProvider>
         <HealthDataProvider>
           <MealPlanProvider>
-            <OnboardingProvider>
-              <RootNavigator />
-              <StatusBar style="auto" />
-            </OnboardingProvider>
+            <ShoppingListProvider>
+              <OnboardingProvider>
+                <RootNavigator />
+                <StatusBar style="auto" />
+              </OnboardingProvider>
+            </ShoppingListProvider>
           </MealPlanProvider>
         </HealthDataProvider>
       </SignUpProvider>

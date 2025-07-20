@@ -14,6 +14,7 @@ import HomeScreen from '../screens/main/HomeScreen';
 import MealPlanScreen from '../screens/main/MealPlanScreen';
 import CheckInScreen from '../screens/main/CheckInScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
+import ShoppingListScreen from '../screens/main/ShoppingListScreen';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -29,6 +30,7 @@ export type OnboardingStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   MealPlan: undefined;
+  ShoppingList: undefined;
   CheckIn: undefined;
   Profile: undefined;
 };
@@ -58,6 +60,8 @@ function MainNavigator() {
             iconName = focused ? 'home' : 'home-outline';
           } else if (route.name === 'MealPlan') {
             iconName = focused ? 'restaurant' : 'restaurant-outline';
+          } else if (route.name === 'ShoppingList') {
+            iconName = focused ? 'cart' : 'cart-outline';
           } else if (route.name === 'CheckIn') {
             iconName = focused ? 'checkmark-circle' : 'checkmark-circle-outline';
           } else if (route.name === 'Profile') {
@@ -89,6 +93,7 @@ function MainNavigator() {
     >
       <MainTab.Screen name="Home" component={HomeScreen} options={{ title: 'Home' }} />
       <MainTab.Screen name="MealPlan" component={MealPlanScreen} options={{ title: 'Meals' }} />
+      <MainTab.Screen name="ShoppingList" component={ShoppingListScreen} options={{ title: 'Shopping' }} />
       <MainTab.Screen name="CheckIn" component={CheckInScreen} options={{ title: 'Check-in' }} />
       <MainTab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile' }} />
     </MainTab.Navigator>
