@@ -16,36 +16,69 @@ export default function MealPlanScreen() {
   const { currentMealPlan, loading, refreshMealPlan } = useMealPlan();
   const [selectedDay, setSelectedDay] = useState(0);
 
+  // Ensure selectedDay is within bounds
+  React.useEffect(() => {
+    if (currentMealPlan?.meals && selectedDay >= currentMealPlan.meals.length) {
+      setSelectedDay(0);
+    }
+  }, [currentMealPlan, selectedDay]);
+
   const handleRefresh = async () => {
     await refreshMealPlan();
   };
 
-  const renderMealCard = (meal: any, mealType: string) => (
-    <View style={styles.mealSection}>
-      <Text style={styles.mealTypeTitle}>{mealType}</Text>
-      <TouchableOpacity style={styles.recipeCard}>
-        <View style={styles.recipeImage}>
-          <Text style={styles.recipeImagePlaceholder}>
-            {mealType.includes('Breakfast') ? '🥣' : mealType.includes('Lunch') ? '🍖' : '🍜'}
-          </Text>
-        </View>
-        <View style={styles.recipeInfo}>
-          <Text style={styles.recipeName}>{meal.name}</Text>
-          <Text style={styles.recipeDetails}>
-            {meal.calories} kcal • {meal.cookingTime} min
-          </Text>
-          <View style={styles.recipeActions}>
-            <TouchableOpacity style={styles.viewRecipeButton}>
-              <Text style={styles.viewRecipeText}>View Recipe</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.replaceButton}>
-              <Text style={styles.replaceText}>Replace</Text>
-            </TouchableOpacity>
+  const renderMealCard = (meal: any, mealType: string) => {
+    if (!meal) {
+      return (
+        <View style={styles.mealSection}>
+          <Text style={styles.mealTypeTitle}>{mealType}</Text>
+          <View style={styles.recipeCard}>
+            <View style={styles.recipeImage}>
+              <Text style={styles.recipeImagePlaceholder}>
+                {mealType.includes('Breakfast') ? '🥣' : mealType.includes('Lunch') ? '🍖' : '🍜'}
+              </Text>
+            </View>
+            <View style={styles.recipeInfo}>
+              <Text style={styles.recipeName}>No meal available</Text>
+              <Text style={styles.recipeDetails}>0 kcal • 0 min</Text>
+              <View style={styles.recipeActions}>
+                <TouchableOpacity style={styles.replaceButton}>
+                  <Text style={styles.replaceText}>Generate Meal</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </View>
-      </TouchableOpacity>
-    </View>
-  );
+      );
+    }
+
+    return (
+      <View style={styles.mealSection}>
+        <Text style={styles.mealTypeTitle}>{mealType}</Text>
+        <TouchableOpacity style={styles.recipeCard}>
+          <View style={styles.recipeImage}>
+            <Text style={styles.recipeImagePlaceholder}>
+              {mealType.includes('Breakfast') ? '🥣' : mealType.includes('Lunch') ? '🍖' : '🍜'}
+            </Text>
+          </View>
+          <View style={styles.recipeInfo}>
+            <Text style={styles.recipeName}>{meal.name || 'Unnamed Meal'}</Text>
+            <Text style={styles.recipeDetails}>
+              {meal.nutrition?.calories || meal.calories || 0} kcal • {meal.cookingTime || 0} min
+            </Text>
+            <View style={styles.recipeActions}>
+              <TouchableOpacity style={styles.viewRecipeButton}>
+                <Text style={styles.viewRecipeText}>View Recipe</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.replaceButton}>
+                <Text style={styles.replaceText}>Replace</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   if (loading) {
     return (
@@ -57,7 +90,7 @@ export default function MealPlanScreen() {
     );
   }
 
-  if (!currentMealPlan) {
+  if (!currentMealPlan || !currentMealPlan.meals || currentMealPlan.meals.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.noMealPlanContainer}>
@@ -87,7 +120,7 @@ export default function MealPlanScreen() {
         style={styles.weekNav}
         contentContainerStyle={styles.weekNavContent}
       >
-        {currentMealPlan.dailyMeals.map((day, index) => (
+        {currentMealPlan.meals.map((day, index) => (
           <TouchableOpacity
             key={index}
             style={[
@@ -102,7 +135,7 @@ export default function MealPlanScreen() {
                 selectedDay === index && styles.selectedDayText,
               ]}
             >
-              {day.day}
+              {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
             </Text>
           </TouchableOpacity>
         ))}
@@ -111,26 +144,34 @@ export default function MealPlanScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Daily Meals */}
         <View style={styles.dayContainer}>
-          <Text style={styles.dateText}>
-            {currentMealPlan.dailyMeals[selectedDay].day} • {currentMealPlan.dailyMeals[selectedDay].date}
-          </Text>
+          {currentMealPlan.meals[selectedDay] && (
+            <>
+              <Text style={styles.dateText}>
+                {new Date(currentMealPlan.meals[selectedDay].date).toLocaleDateString('en-US', { 
+                  weekday: 'long',
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </Text>
 
-          {/* Breakfast */}
-          {renderMealCard(
-            currentMealPlan.dailyMeals[selectedDay].meals.breakfast,
-            '🌅 Breakfast'
-          )}
+              {/* Breakfast */}
+              {renderMealCard(
+                currentMealPlan.meals[selectedDay].breakfast,
+                '🌅 Breakfast'
+              )}
 
-          {/* Lunch */}
-          {renderMealCard(
-            currentMealPlan.dailyMeals[selectedDay].meals.lunch,
-            '☀️ Lunch'
-          )}
+              {/* Lunch */}
+              {renderMealCard(
+                currentMealPlan.meals[selectedDay].lunch,
+                '☀️ Lunch'
+              )}
 
-          {/* Dinner */}
-          {renderMealCard(
-            currentMealPlan.dailyMeals[selectedDay].meals.dinner,
-            '🌙 Dinner'
+              {/* Dinner */}
+              {renderMealCard(
+                currentMealPlan.meals[selectedDay].dinner,
+                '🌙 Dinner'
+              )}
+            </>
           )}
 
           {/* Daily Nutrition Summary */}
@@ -139,25 +180,25 @@ export default function MealPlanScreen() {
             <View style={styles.nutritionRow}>
               <View style={styles.nutritionItem}>
                 <Text style={styles.nutritionValue}>
-                  {currentMealPlan.dailyMeals[selectedDay].totalCalories}
+                  {currentMealPlan.meals[selectedDay]?.totalCalories || 0}
                 </Text>
                 <Text style={styles.nutritionLabel}>Total Calories</Text>
               </View>
               <View style={styles.nutritionItem}>
                 <Text style={styles.nutritionValue}>
-                  {currentMealPlan.dailyMeals[selectedDay].totalProtein}g
+                  {currentMealPlan.meals[selectedDay]?.totalProtein || 0}g
                 </Text>
                 <Text style={styles.nutritionLabel}>Protein</Text>
               </View>
               <View style={styles.nutritionItem}>
                 <Text style={styles.nutritionValue}>
-                  {currentMealPlan.dailyMeals[selectedDay].totalFat}g
+                  {currentMealPlan.meals[selectedDay]?.totalFat || 0}g
                 </Text>
                 <Text style={styles.nutritionLabel}>Fat</Text>
               </View>
               <View style={styles.nutritionItem}>
                 <Text style={styles.nutritionValue}>
-                  {currentMealPlan.dailyMeals[selectedDay].totalCarbs}g
+                  {currentMealPlan.meals[selectedDay]?.totalCarbs || 0}g
                 </Text>
                 <Text style={styles.nutritionLabel}>Carbs</Text>
               </View>
