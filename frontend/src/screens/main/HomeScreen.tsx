@@ -45,6 +45,11 @@ export default function HomeScreen() {
     }
   };
 
+  const handleStartCooking = () => {
+    // Navigate to meals panel
+    navigation.navigate('MealPlan' as never);
+  };
+
   const renderMealCard = (meal: any, mealType: string) => (
     <View style={styles.mealCard}>
       <View style={styles.mealHeader}>
@@ -155,7 +160,7 @@ export default function HomeScreen() {
                 </View>
 
                 <View style={styles.actionButtonsContainer}>
-                  <TouchableOpacity style={styles.startCookingButton}>
+                  <TouchableOpacity style={styles.startCookingButton} onPress={handleStartCooking}>
                     <Text style={styles.startCookingText}>Start Cooking</Text>
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.shopIngredientsButton} onPress={handleShopIngredients}>

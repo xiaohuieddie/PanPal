@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Image,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../utils/theme';
@@ -15,16 +16,34 @@ import { useMealPlan } from '../../contexts/MealPlanContext';
 export default function MealPlanScreen() {
   const { currentMealPlan, loading, refreshMealPlan } = useMealPlan();
   const [selectedDay, setSelectedDay] = useState(0);
+  const [viewMode, setViewMode] = useState<'video' | 'recipe'>('video');
+  const [selectedMealType, setSelectedMealType] = useState<'breakfast' | 'lunch' | 'dinner'>('breakfast');
 
-  // Ensure selectedDay is within bounds
+  // Get current meal type based on time
+  const getCurrentMealType = (): 'breakfast' | 'lunch' | 'dinner' => {
+    const currentHour = new Date().getHours();
+    if (currentHour < 10) return 'breakfast';
+    if (currentHour < 16) return 'lunch';
+    return 'dinner';
+  };
+
+  // Ensure selectedDay is within bounds and set initial meal type
   React.useEffect(() => {
     if (currentMealPlan?.meals && selectedDay >= currentMealPlan.meals.length) {
       setSelectedDay(0);
     }
+    // Set initial meal type based on current time
+    setSelectedMealType(getCurrentMealType());
   }, [currentMealPlan, selectedDay]);
 
   const handleRefresh = async () => {
     await refreshMealPlan();
+  };
+
+  // Get current meal data based on selected meal type
+  const getCurrentMeal = () => {
+    if (!currentMealPlan?.meals?.[selectedDay]) return null;
+    return currentMealPlan.meals[selectedDay][selectedMealType];
   };
 
   const renderMealCard = (meal: any, mealType: string) => {
@@ -55,7 +74,7 @@ export default function MealPlanScreen() {
     return (
       <View style={styles.mealSection}>
         <Text style={styles.mealTypeTitle}>{mealType}</Text>
-        <TouchableOpacity style={styles.recipeCard}>
+        <View style={styles.recipeCard}>
           <View style={styles.recipeImage}>
             <Text style={styles.recipeImagePlaceholder}>
               {mealType.includes('Breakfast') ? '🥣' : mealType.includes('Lunch') ? '🍖' : '🍜'}
@@ -67,15 +86,10 @@ export default function MealPlanScreen() {
               {meal.nutrition?.calories || meal.calories || 0} kcal • {meal.cookingTime || 0} min
             </Text>
             <View style={styles.recipeActions}>
-              <TouchableOpacity style={styles.viewRecipeButton}>
-                <Text style={styles.viewRecipeText}>View Recipe</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.replaceButton}>
-                <Text style={styles.replaceText}>Replace</Text>
-              </TouchableOpacity>
+              <Text style={styles.tapToViewText}>Recipe details available</Text>
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -154,6 +168,141 @@ export default function MealPlanScreen() {
                 })}
               </Text>
 
+              {/* Video/Recipe Slider */}
+              <View style={styles.videoRecipeSlider}>
+                {/* Meal Type Selection */}
+                <View style={styles.mealTypeSelector}>
+                  <TouchableOpacity 
+                    style={[styles.mealTypeButton, selectedMealType === 'breakfast' && styles.activeMealTypeButton]}
+                    onPress={() => setSelectedMealType('breakfast')}
+                  >
+                    <Text style={styles.mealTypeIcon}>🌅</Text>
+                    <Text style={[styles.mealTypeText, selectedMealType === 'breakfast' && styles.activeMealTypeText]}>
+                      Breakfast
+                    </Text>
+                    {getCurrentMealType() === 'breakfast' && (
+                      <View style={styles.currentTimeIndicator}>
+                        <Text style={styles.currentTimeText}>Now</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.mealTypeButton, selectedMealType === 'lunch' && styles.activeMealTypeButton]}
+                    onPress={() => setSelectedMealType('lunch')}
+                  >
+                    <Text style={styles.mealTypeIcon}>☀️</Text>
+                    <Text style={[styles.mealTypeText, selectedMealType === 'lunch' && styles.activeMealTypeText]}>
+                      Lunch
+                    </Text>
+                    {getCurrentMealType() === 'lunch' && (
+                      <View style={styles.currentTimeIndicator}>
+                        <Text style={styles.currentTimeText}>Now</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.mealTypeButton, selectedMealType === 'dinner' && styles.activeMealTypeButton]}
+                    onPress={() => setSelectedMealType('dinner')}
+                  >
+                    <Text style={styles.mealTypeIcon}>🌙</Text>
+                    <Text style={[styles.mealTypeText, selectedMealType === 'dinner' && styles.activeMealTypeText]}>
+                      Dinner
+                    </Text>
+                    {getCurrentMealType() === 'dinner' && (
+                      <View style={styles.currentTimeIndicator}>
+                        <Text style={styles.currentTimeText}>Now</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                {/* View Mode Toggle */}
+                <View style={styles.viewModeToggle}>
+                  <TouchableOpacity 
+                    style={[styles.toggleButton, viewMode === 'video' && styles.activeToggleButton]}
+                    onPress={() => setViewMode('video')}
+                  >
+                    <Ionicons name="play-circle" size={20} color={viewMode === 'video' ? 'white' : '#666'} />
+                    <Text style={[styles.toggleText, viewMode === 'video' && styles.activeToggleText]}>
+                      Video
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.toggleButton, viewMode === 'recipe' && styles.activeToggleButton]}
+                    onPress={() => setViewMode('recipe')}
+                  >
+                    <Ionicons name="document-text" size={20} color={viewMode === 'recipe' ? 'white' : '#666'} />
+                    <Text style={[styles.toggleText, viewMode === 'recipe' && styles.activeToggleText]}>
+                      Recipe
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Content */}
+                <View style={styles.sliderContent}>
+                  {viewMode === 'video' ? (
+                    <View style={styles.videoContainer}>
+                      <View style={styles.videoPlaceholder}>
+                        <Ionicons name="play-circle" size={80} color="#ccc" />
+                        <Text style={styles.videoPlaceholderText}>
+                          {getCurrentMeal()?.name || `${selectedMealType.charAt(0).toUpperCase() + selectedMealType.slice(1)} Video`}
+                        </Text>
+                        <Text style={styles.videoPlaceholderSubtext}>
+                          How to cook {getCurrentMeal()?.name || selectedMealType} tutorial
+                        </Text>
+                      </View>
+                    </View>
+                  ) : (
+                    <ScrollView style={styles.recipeContent}>
+                      {getCurrentMeal() ? (
+                        <>
+                          <View style={styles.recipeSection}>
+                            <Text style={styles.recipeSectionTitle}>
+                              {getCurrentMeal()?.name || `${selectedMealType.charAt(0).toUpperCase() + selectedMealType.slice(1)} Recipe`}
+                            </Text>
+                            <Text style={styles.recipeText}>
+                              {`Delicious ${selectedMealType} recipe`}
+                            </Text>
+                          </View>
+                          
+                          <View style={styles.recipeSection}>
+                            <Text style={styles.recipeSectionTitle}>Ingredients</Text>
+                            <Text style={styles.recipeText}>
+                              {getCurrentMeal()?.ingredients?.join('\n• ') || 'Ingredients not available'}
+                            </Text>
+                          </View>
+                          
+                          <View style={styles.recipeSection}>
+                            <Text style={styles.recipeSectionTitle}>Instructions</Text>
+                            <Text style={styles.recipeText}>
+                              Cooking instructions not available
+                            </Text>
+                          </View>
+                          
+                          <View style={styles.recipeSection}>
+                            <Text style={styles.recipeSectionTitle}>Nutrition</Text>
+                            <Text style={styles.recipeText}>
+                              Calories: {getCurrentMeal()?.nutrition?.calories || 0} kcal{'\n'}
+                              Protein: {getCurrentMeal()?.nutrition?.protein || 0}g{'\n'}
+                              Fat: {getCurrentMeal()?.nutrition?.fat || 0}g{'\n'}
+                              Carbs: {getCurrentMeal()?.nutrition?.carbs || 0}g{'\n'}
+                              Cooking Time: {getCurrentMeal()?.cookingTime || 0} min
+                            </Text>
+                          </View>
+                        </>
+                      ) : (
+                        <View style={styles.recipeSection}>
+                          <Text style={styles.recipeSectionTitle}>No {selectedMealType} available</Text>
+                          <Text style={styles.recipeText}>
+                            No {selectedMealType} recipe is available for today. Please check other meal types or generate a new meal plan.
+                          </Text>
+                        </View>
+                      )}
+                    </ScrollView>
+                  )}
+                </View>
+              </View>
+
               {/* Breakfast */}
               {renderMealCard(
                 currentMealPlan.meals[selectedDay].breakfast,
@@ -225,6 +374,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 16,
   },
+
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -298,6 +448,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
   recipeImage: {
     width: 80,
@@ -422,5 +574,147 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: 'white',
+  },
+
+  viewModeToggle: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  toggleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 12,
+    backgroundColor: '#f0f0f0',
+  },
+  activeToggleButton: {
+    backgroundColor: theme.colors.primary,
+  },
+  toggleText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+    marginLeft: 6,
+  },
+  activeToggleText: {
+    color: 'white',
+  },
+  videoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    minHeight: 300,
+  },
+  videoPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 40,
+    width: '100%',
+    height: 250,
+  },
+  videoPlaceholderText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  videoPlaceholderSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  recipeContent: {
+    padding: 20,
+  },
+  recipeSection: {
+    marginBottom: 24,
+  },
+  recipeSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 12,
+  },
+  recipeText: {
+    fontSize: 16,
+    color: '#666',
+    lineHeight: 24,
+  },
+  tapToViewText: {
+    fontSize: 12,
+    color: theme.colors.primary,
+    fontStyle: 'italic',
+  },
+  // Video/Recipe Slider styles
+  videoRecipeSlider: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  sliderContent: {
+    padding: 20,
+  },
+  // Meal type selector styles
+  mealTypeSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  mealTypeButton: {
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
+    minWidth: 80,
+  },
+  activeMealTypeButton: {
+    backgroundColor: theme.colors.primary,
+  },
+  mealTypeIcon: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+  mealTypeText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#666',
+  },
+  activeMealTypeText: {
+    color: 'white',
+  },
+  currentTimeIndicator: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  currentTimeText: {
+    fontSize: 10,
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
