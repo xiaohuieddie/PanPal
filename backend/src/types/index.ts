@@ -44,6 +44,27 @@ export interface NutritionInfo {
   carbs: number;
 }
 
+// YouTube Video Types
+export interface YouTubeVideo {
+  id: string;
+  title?: string;
+  description?: string;
+  thumbnail?: string;
+  channel?: string;
+  duration?: string;
+  views?: string;
+  likes?: number;
+  publishedAt?: string;
+  videoUrl?: string;
+  embedUrl?: string;
+}
+
+export interface VideoSearchResponse {
+  success: boolean;
+  data?: YouTubeVideo[];
+  error?: string;
+}
+
 // Meal Plan Types
 export interface MealPlan {
   id: string;

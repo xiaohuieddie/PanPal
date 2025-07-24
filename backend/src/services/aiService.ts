@@ -47,61 +47,85 @@ export class AIService {
         
         meals.push({
           date: dateString,
-                  breakfast: {
-          id: "fallback-recipe",
-          name: `Balanced Breakfast ${i + 1}`,
-          image: "",
-          ingredients: [
-            { id: "1", name: "Protein source", amount: "100", unit: "g" },
-            { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
-            { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
-          ],
-          steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
-          nutrition: { calories: 737.75, protein: 46, fat: 25, carbs: 83 },
-          cookingTime: 20,
-          difficulty: "easy" as const,
-          tags: ["balanced", "healthy"],
-          cuisine: "International",
-          budget: "standard" as const
-        },
-        lunch: {
-          id: "fallback-recipe",
-          name: `Balanced Lunch ${i + 1}`,
-          image: "",
-          ingredients: [
-            { id: "1", name: "Protein source", amount: "100", unit: "g" },
-            { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
-            { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
-          ],
-          steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
-          nutrition: { calories: 1032.85, protein: 65, fat: 34, carbs: 116 },
-          cookingTime: 20,
-          difficulty: "easy" as const,
-          tags: ["balanced", "healthy"],
-          cuisine: "International",
-          budget: "standard" as const
-        },
-        dinner: {
-          id: "fallback-recipe",
-          name: `Balanced Dinner ${i + 1}`,
-          image: "",
-          ingredients: [
-            { id: "1", name: "Protein source", amount: "100", unit: "g" },
-            { id: "2", name: "Vegetables", amount: "1", unit: "cup" },
-            { id: "3", name: "Grains", amount: "1/2", unit: "cup" }
-          ],
-          steps: ["Cook protein", "Prepare vegetables", "Serve with grains"],
-          nutrition: { calories: 1180.4, protein: 74, fat: 39, carbs: 133 },
-          cookingTime: 20,
-          difficulty: "easy" as const,
-          tags: ["balanced", "healthy"],
-          cuisine: "International",
-          budget: "standard" as const
-        },
-          totalCalories: 2951,
-          totalProtein: 185,
-          totalFat: 98,
-          totalCarbs: 332
+          breakfast: {
+            id: "mock-breakfast",
+            name: "Avocado Toast with Poached Egg",
+            image: "",
+            ingredients: [
+              { id: "1", name: "Whole grain bread", amount: "2", unit: "slices" },
+              { id: "2", name: "Avocado", amount: "1/2", unit: "piece" },
+              { id: "3", name: "Egg", amount: "1", unit: "large" },
+              { id: "4", name: "Cherry tomatoes", amount: "5", unit: "pieces" },
+              { id: "5", name: "Olive oil", amount: "1", unit: "tsp" },
+              { id: "6", name: "Salt & pepper", amount: "to taste", unit: "" }
+            ],
+            steps: [
+              "Toast the bread.",
+              "Mash avocado and spread on toast.",
+              "Poach the egg and place on top.",
+              "Drizzle with olive oil, season, and add tomatoes."
+            ],
+            nutrition: { calories: 350, protein: 13, fat: 18, carbs: 35 },
+            cookingTime: 15,
+            difficulty: "easy" as const,
+            tags: ["breakfast", "healthy", "quick"],
+            cuisine: "American",
+            budget: "standard" as const
+          },
+          lunch: {
+            id: "mock-lunch",
+            name: "Chicken Teriyaki Rice Bowl",
+            image: "",
+            ingredients: [
+              { id: "1", name: "Chicken breast", amount: "120", unit: "g" },
+              { id: "2", name: "Cooked rice", amount: "1", unit: "cup" },
+              { id: "3", name: "Broccoli florets", amount: "1", unit: "cup" },
+              { id: "4", name: "Carrot", amount: "1/2", unit: "piece" },
+              { id: "5", name: "Teriyaki sauce", amount: "2", unit: "tbsp" },
+              { id: "6", name: "Sesame seeds", amount: "1", unit: "tsp" }
+            ],
+            steps: [
+              "Grill or pan-fry chicken with teriyaki sauce.",
+              "Steam broccoli and carrots.",
+              "Serve chicken and veggies over rice.",
+              "Sprinkle with sesame seeds."
+            ],
+            nutrition: { calories: 520, protein: 32, fat: 9, carbs: 70 },
+            cookingTime: 25,
+            difficulty: "medium" as const,
+            tags: ["lunch", "asian", "protein"],
+            cuisine: "Japanese",
+            budget: "standard" as const
+          },
+          dinner: {
+            id: "mock-dinner",
+            name: "Salmon & Quinoa Power Bowl",
+            image: "",
+            ingredients: [
+              { id: "1", name: "Salmon fillet", amount: "120", unit: "g" },
+              { id: "2", name: "Quinoa", amount: "3/4", unit: "cup" },
+              { id: "3", name: "Spinach", amount: "1", unit: "cup" },
+              { id: "4", name: "Red bell pepper", amount: "1/2", unit: "piece" },
+              { id: "5", name: "Feta cheese", amount: "2", unit: "tbsp" },
+              { id: "6", name: "Lemon juice", amount: "1", unit: "tbsp" }
+            ],
+            steps: [
+              "Cook quinoa as per instructions.",
+              "Pan-sear or bake salmon.",
+              "Assemble bowl with spinach, quinoa, salmon, peppers, and feta.",
+              "Drizzle with lemon juice."
+            ],
+            nutrition: { calories: 480, protein: 34, fat: 18, carbs: 45 },
+            cookingTime: 30,
+            difficulty: "medium" as const,
+            tags: ["dinner", "high-protein", "healthy"],
+            cuisine: "Mediterranean",
+            budget: "standard" as const
+          },
+          totalCalories: 1350,
+          totalProtein: 79,
+          totalFat: 45,
+          totalCarbs: 150
         });
       }
       

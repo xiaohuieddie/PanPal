@@ -1,5 +1,6 @@
 import { Router, Response } from 'express';
 import { AIService } from '../services/aiService';
+import { YouTubeService } from '../services/youtubeService';
 import { generateMealPlanSchema } from '../validation/schemas';
 import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
 
@@ -147,6 +148,86 @@ router.get('/recipe-suggestions', authenticateToken, async (req: AuthenticatedRe
     res.status(500).json({
       success: false,
       error: 'Failed to get recipe suggestions'
+    });
+  }
+});
+
+/**
+ * GET /ai/cooking-videos
+ * Search for cooking videos on YouTube
+ */
+router.get('/cooking-videos', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { recipeName, limit = 5 } = req.query;
+    
+    if (!recipeName) {
+      res.status(400).json({
+        success: false,
+        error: 'Recipe name is required'
+      });
+      return;
+    }
+
+    console.log(`🎥 [API] Searching for cooking videos: "${recipeName}"`);
+    
+    // Search for cooking videos
+    const videos = await YouTubeService.searchCookingVideos(
+      recipeName as string,
+      parseInt(limit as string)
+    );
+    
+    res.status(200).json({
+      success: true,
+      data: videos,
+      message: `Found ${videos.length} cooking videos for "${recipeName}"`
+    });
+  } catch (error: any) {
+    console.error('Cooking videos route error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to search for cooking videos'
+    });
+  }
+});
+
+/**
+ * GET /ai/best-cooking-video
+ * Get the best cooking video for a recipe (highest likes)
+ */
+router.get('/best-cooking-video', authenticateToken, async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+  try {
+    const { recipeName } = req.query;
+    
+    if (!recipeName) {
+      res.status(400).json({
+        success: false,
+        error: 'Recipe name is required'
+      });
+      return;
+    }
+
+    console.log(`🏆 [API] Finding best cooking video for: "${recipeName}"`);
+    
+    // Get the best cooking video
+    const video = await YouTubeService.getBestCookingVideo(recipeName as string);
+    
+    if (video) {
+      res.status(200).json({
+        success: true,
+        data: video,
+        message: `Found best cooking video for "${recipeName}"`
+      });
+    } else {
+      res.status(404).json({
+        success: false,
+        error: `No cooking videos found for "${recipeName}"`
+      });
+    }
+  } catch (error: any) {
+    console.error('Best cooking video route error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to find best cooking video'
     });
   }
 });
