@@ -1,4 +1,4 @@
-import { UserProfile, MealPlan, Recipe } from '../types';
+import { UserProfile, MealPlan, Recipe, YouTubeVideo } from '../types';
 import { FirebaseService } from './firebaseService';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://127.0.0.1:5001/panpal-1aac4/us-central1/api';
@@ -255,6 +255,27 @@ export class AIService {
     } catch (error: any) {
       console.error('❌ [AIService] Get recipe suggestions error:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Search for cooking videos on YouTube
+   */
+  static async searchCookingVideos(recipeName: string, limit: number = 5): Promise<YouTubeVideo[]> {
+    try {
+      console.log('[AIService] searchCookingVideos called with:', recipeName, 'limit:', limit);
+      const response = await this.makeAuthenticatedRequest(
+        `/ai/cooking-videos?recipeName=${encodeURIComponent(recipeName)}&limit=${limit}`
+      );
+      console.log('[AIService] searchCookingVideos response:', response);
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to search for cooking videos');
+      }
+      console.log('[AIService] searchCookingVideos returning:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ [AIService] Search cooking videos error:', error);
+      return [];
     }
   }
 

@@ -41,4 +41,18 @@ export interface DailyMeals {
   totalProtein?: number;
   totalFat?: number;
   totalCarbs?: number;
+}
+
+export interface YouTubeVideo {
+  id: string;
+  title?: string;
+  description?: string;
+  thumbnail?: { static: string };
+  channel?: { name: string; link: string; thumbnail: string };
+  duration?: string;
+  views?: number | string;
+  likes?: number;
+  publishedAt?: string;
+  videoUrl?: string;
+  embedUrl?: string;
 } 

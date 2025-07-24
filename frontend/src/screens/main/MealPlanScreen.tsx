@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,16 +8,23 @@ import {
   SafeAreaView,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../../utils/theme';
 import { useMealPlan } from '../../contexts/MealPlanContext';
+import { AIService } from '../../services/aiService';
+import { YouTubeVideo } from '../../types/recipe';
+import { WebView } from 'react-native-webview';
 
 export default function MealPlanScreen() {
   const { currentMealPlan, loading, refreshMealPlan } = useMealPlan();
   const [selectedDay, setSelectedDay] = useState(0);
   const [viewMode, setViewMode] = useState<'video' | 'recipe'>('video');
   const [selectedMealType, setSelectedMealType] = useState<'breakfast' | 'lunch' | 'dinner'>('breakfast');
+  const [currentVideo, setCurrentVideo] = useState<YouTubeVideo | null>(null);
+  const [videoLoading, setVideoLoading] = useState(false);
+  const [showVideoPlayer, setShowVideoPlayer] = useState(false);
 
   // Get current meal type based on time
   const getCurrentMealType = (): 'breakfast' | 'lunch' | 'dinner' => {
@@ -38,6 +45,31 @@ export default function MealPlanScreen() {
     // Set initial meal type based on current time
     setSelectedMealType(getCurrentMealType());
   }, [currentMealPlan, selectedDay]);
+
+  useEffect(() => {
+    if (viewMode === 'video') {
+      fetchCookingVideo();
+      setShowVideoPlayer(false);
+    }
+    // eslint-disable-next-line
+  }, [selectedDay, selectedMealType, viewMode]);
+
+  const fetchCookingVideo = async () => {
+    const meal = getCurrentMeal();
+    if (!meal?.name) {
+      setCurrentVideo(null);
+      return;
+    }
+    setVideoLoading(true);
+    try {
+      const videos = await AIService.searchCookingVideos(meal.name, 1);
+      setCurrentVideo(videos[0] || null);
+    } catch (e) {
+      setCurrentVideo(null);
+    } finally {
+      setVideoLoading(false);
+    }
+  };
 
   const handleRefresh = async () => {
     await refreshMealPlan();
@@ -245,15 +277,29 @@ export default function MealPlanScreen() {
                 <View style={styles.sliderContent}>
                   {viewMode === 'video' ? (
                     <View style={styles.videoContainer}>
-                      <View style={styles.videoPlaceholder}>
-                        <Ionicons name="play-circle" size={80} color="#ccc" />
-                        <Text style={styles.videoPlaceholderText}>
-                          {getCurrentMeal()?.name || `${selectedMealType.charAt(0).toUpperCase() + selectedMealType.slice(1)} Video`}
-                        </Text>
-                        <Text style={styles.videoPlaceholderSubtext}>
-                          How to cook {getCurrentMeal()?.name || selectedMealType} tutorial
-                        </Text>
-                      </View>
+                      {videoLoading ? (
+                        <ActivityIndicator size="large" color={theme.colors.primary} />
+                      ) : currentVideo && currentVideo.embedUrl && currentVideo.embedUrl.startsWith('https://www.youtube.com/embed/') ? (
+                        <WebView
+                          source={{ uri: currentVideo.embedUrl }}
+                          style={{ width: 320, height: 180, borderRadius: 12 }}
+                          allowsFullscreenVideo
+                          javaScriptEnabled
+                          domStorageEnabled
+                          originWhitelist={['*']}
+                          startInLoadingState
+                        />
+                      ) : (
+                        <View style={styles.videoPlaceholder}>
+                          <Ionicons name="play-circle" size={80} color="#ccc" />
+                          <Text style={styles.videoPlaceholderText}>
+                            {getCurrentMeal()?.name || `${selectedMealType.charAt(0).toUpperCase() + selectedMealType.slice(1)} Video`}
+                          </Text>
+                          <Text style={styles.videoPlaceholderSubtext}>
+                            How to cook {getCurrentMeal()?.name || selectedMealType} tutorial
+                          </Text>
+                        </View>
+                      )}
                     </View>
                   ) : (
                     <ScrollView style={styles.recipeContent}>
